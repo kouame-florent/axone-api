@@ -1,0 +1,9 @@
+#generate code
+go build -o bin/ builder/*
+go generate generator/*
+
+#run test ex:
+AXONE_ENV=debug go test -v internal/rg/*
+
+#run main
+AXONE_ENV=debug go run cmd/main.go
