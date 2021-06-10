@@ -3,7 +3,7 @@ package store
 import (
 	"log"
 
-	axo "github.com/kouame-florent/axone-api/internal/axone"
+	"github.com/kouame-florent/axone-api/internal/axone"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -21,9 +21,9 @@ func OpenDB(dsn string) *gorm.DB {
 
 func CreateSchema(db *gorm.DB) error {
 	log.Println("migrating db ...")
-	err := db.AutoMigrate(&axo.Organization{}, &axo.User{}, &axo.Role{}, &axo.EndUser{}, &axo.Agent{},
-		&axo.Administrator{}, &axo.Ticket{}, &axo.Tag{}, &axo.Attachment{},
-		&axo.Comment{}, &axo.Assignment{}, &axo.Knowledge{})
+	err := db.AutoMigrate(&axone.Organization{}, &axone.User{}, &axone.Role{}, &axone.EndUser{}, &axone.Agent{},
+		&axone.Administrator{}, &axone.Ticket{}, &axone.Tag{}, &axone.Attachment{},
+		&axone.Comment{}, &axone.Assignment{}, &axone.Knowledge{})
 	return err
 }
 
