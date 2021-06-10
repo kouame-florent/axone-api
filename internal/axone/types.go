@@ -18,10 +18,28 @@ type User struct {
 	LastName       string
 	Email          string
 	PhoneNumber    string
+	Login          string
+	Password       string
+	OrganizationID uuid.UUID `gorm:"type:varchar(36)"`
 	EndUsers       []EndUser
 	Administrators []Administrator
 	Agents         []Agent
+	Roles          []*Role `gorm:"many2many:user_roles;"`
 }
+
+type Role struct {
+	Model
+	Value RoleValue
+	Users []*User `gorm:"many2many:user_roles;"`
+}
+
+type RoleValue string
+
+const (
+	ROLE_END_USER      RoleValue = "END_USER"
+	ROLE_AGENT         RoleValue = "AGENT"
+	ROLE_ADMINISTRATOR RoleValue = "ADMINISTRATOR"
+)
 
 type EndUser struct {
 	UserID uuid.UUID `gorm:"type:varchar(36)"`
@@ -37,49 +55,66 @@ type Administrator struct {
 
 type Organization struct {
 	Model
-	Name      string
-	Users     []User
-	Questions []Question
+	Name  string
+	Users []User
 }
 
 type Ticket struct {
 	Model
-	Question
-	Answer
-	EndUserID  uuid.UUID `gorm:"type:varchar(36)" json:"end_user_id"`
-	AssigneeID uuid.UUID `gorm:"type:varchar(36)" json:"assignee_id"`
-	Status     TicketStatus
-	Tags       []*Tag `gorm:"many2many:question_question_tags;"`
+	Title       string
+	Question    string
+	Answer      string
+	EndUserID   uuid.UUID `gorm:"type:varchar(36)" json:"end_user_id"`
+	AssigneeID  uuid.UUID `gorm:"type:varchar(36)" json:"assignee_id"`
+	Status      TicketStatus
+	Tags        []*Tag `gorm:"many2many:ticket_tags;"`
+	Comments    []Comment
+	Attachments []Attachment
 }
 
-type Question struct {
-	Title               string
-	Body                string
-	QuestionAttachments []QuestionAttachment
-	QuestionComments    []QuestionComment
+type Tag struct {
+	Model
+	Name    string
+	Tickets []*Ticket `gorm:"many2many:ticket_tags;"`
 }
 
-type Answer struct {
-	Body              string
-	AnswerAttachments []AnswerAttachment
-	AnswerComments    []AnswerComment
-}
-
-type QuestionComment struct {
+type Comment struct {
+	Model
 	Body     string
-	TicketID uuid.UUID `gorm:"type:varchar(36)"`
+	TicketID uuid.UUID       `gorm:"type:varchar(36)"`
+	Kind     CommentKind     `gorm:"not null"`
+	Category CommentCategory `gorm:"not null"`
 }
 
-type AnswerComment struct {
-	Body     string
-	TicketID uuid.UUID `gorm:"type:varchar(36)"`
+type Attachment struct {
+	Model
+	UploadedName string
+	Size         int64
+	MimeType     string
+	StorageName  string
+	Kind         AttachmentKind
+	TicketID     uuid.UUID `gorm:"type:varchar(36)"`
 }
 
-type CommentStatus string
+type AttachmentKind string
 
 const (
-	PUBLIC  CommentStatus = "Public"
-	PRIVATE CommentStatus = "Private"
+	QUESTION_ATTACHMENT AttachmentKind = "QUESTION"
+	ANSWER_ATTACHMENT   AttachmentKind = "ANSWER"
+)
+
+type CommentKind string
+
+const (
+	QUESTION CommentKind = "QUESTION"
+	ANSWER   CommentKind = "ANSWER"
+)
+
+type CommentCategory string
+
+const (
+	PUBLIC  CommentCategory = "Public"
+	PRIVATE CommentCategory = "Private"
 )
 
 type priority string
@@ -91,43 +126,11 @@ const (
 	PR_Urgent priority = "Urgent"
 )
 
-type role string
-
-const (
-	ROLE_ENDUSER role = "END_USER"
-	PR_AGENT     role = "AGENT"
-	PR_ADMIN     role = "ADMIN"
-)
-
 type Assignment struct {
 	Model
 	TickerID        uuid.UUID `gorm:"type:varchar(36)" json:"question_id"`
 	AgentID         uuid.UUID `gorm:"type:varchar(36)" json:"assignee_id"`
 	Assignment_date time.Time
-}
-
-type QuestionAttachment struct {
-	Model
-	UploadedName string    `json:"uploaded_name"`
-	Size         int64     `json:"size"`
-	MimeType     string    `json:"mime_type"`
-	StorageName  string    `json:"storage_name"`
-	TickerID     uuid.UUID `gorm:"type:varchar(36)"`
-}
-
-type AnswerAttachment struct {
-	Model
-	UploadedName string
-	Size         int64
-	MimeType     string
-	StorageName  string
-	TicketID     uuid.UUID `gorm:"type:varchar(36)"`
-}
-
-type Tag struct {
-	Model
-	Name    string
-	Tickets []*Ticket `gorm:"many2many:ticket_tags;"`
 }
 
 type Knowledge struct {
