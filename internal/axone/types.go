@@ -14,14 +14,14 @@ type Model struct {
 
 type User struct {
 	Model
-	FirstName      string
-	LastName       string
-	Email          string
-	PhoneNumber    string
-	Login          string
-	Password       string
+	FirstName      string    `gorm:"type:varchar(100)"`
+	LastName       string    `gorm:"type:varchar(100)"`
+	Email          string    `gorm:"type:varchar(100)"`
+	PhoneNumber    string    `gorm:"type:varchar(100)"`
+	Login          string    `gorm:"type:varchar(100)"`
+	Password       string    `gorm:"type:varchar(100)"`
 	OrganizationID uuid.UUID `gorm:"type:varchar(36)"`
-	EndUsers       []EndUser
+	Requesters     []Requester
 	Administrators []Administrator
 	Agents         []Agent
 	Roles          []*Role `gorm:"many2many:user_roles;"`
@@ -36,18 +36,29 @@ type Role struct {
 type RoleValue string
 
 const (
-	ROLE_END_USER      RoleValue = "END_USER"
+	ROLE_REQUESTER     RoleValue = "REQUESTER"
 	ROLE_AGENT         RoleValue = "AGENT"
 	ROLE_ADMINISTRATOR RoleValue = "ADMINISTRATOR"
 )
 
-type EndUser struct {
-	UserID uuid.UUID `gorm:"type:varchar(36)"`
+type Requester struct {
+	UserID  uuid.UUID `gorm:"type:varchar(36)"`
+	Tickets []Ticket  `gorm:"foreignKey:RequesterID;references:UserID"`
 }
 
 type Agent struct {
-	UserID uuid.UUID `gorm:"type:varchar(36)"`
+	UserID  uuid.UUID `gorm:"type:varchar(36)"`
+	Bio     string
+	Level   AgentLevel
+	Tickets []Ticket `gorm:"foreignKey:AssigneeID;references:UserID"`
 }
+
+type AgentLevel string
+
+const (
+	LEVEL_ONE AgentLevel = "ONE" //can manage ticket with any status
+	LEVEL_TWO AgentLevel = "TWO" //cannot manage ticket with new status
+)
 
 type Administrator struct {
 	UserID uuid.UUID `gorm:"type:varchar(36)"`
@@ -61,26 +72,47 @@ type Organization struct {
 
 type Ticket struct {
 	Model
-	Title       string
-	Question    string
-	Answer      string
-	EndUserID   uuid.UUID `gorm:"type:varchar(36)" json:"end_user_id"`
-	AssigneeID  uuid.UUID `gorm:"type:varchar(36)" json:"assignee_id"`
+	Subject     string    `gorm:"type:varchar(150)"`
+	Request     string    `gorm:"type:varchar(1000)"`
+	Answer      string    `gorm:"type:varchar(1000)"`
+	RequesterID uuid.UUID `gorm:"type:varchar(36)"`
+	AssigneeID  uuid.UUID `gorm:"type:varchar(36)"`
 	Status      TicketStatus
+	Type        TicketType
+	Priority    TicketPriority
+	Rate        uint
 	Tags        []*Tag `gorm:"many2many:ticket_tags;"`
 	Comments    []Comment
 	Attachments []Attachment
 }
 
+type TicketType string
+
+const (
+	TICKET_TYPE_QUESTION TicketType = "Question"
+	TICKET_TYPE_PROBLEM  TicketType = "Problem"
+	TICKET_TYPE_TASK     TicketType = "Task"
+)
+
+//ticket priority are only seen by agents
+type TicketPriority string
+
+const (
+	TICKET_PRIORITY_LOW    TicketPriority = "Low"
+	TICKET_PRIORITY_MEDIUM TicketPriority = "Medium"
+	TICKET_PRIORITY_HIGH   TicketPriority = "High"
+	TICKET_PRIORITY_URGENT TicketPriority = "Urgent"
+)
+
 type Tag struct {
 	Model
-	Name    string
+	Name    string    `gorm:"type:varchar(50)"`
 	Tickets []*Ticket `gorm:"many2many:ticket_tags;"`
 }
 
 type Comment struct {
 	Model
-	Body     string
+	Text     string          `gorm:"type:varchar(300)"`
 	TicketID uuid.UUID       `gorm:"type:varchar(36)"`
 	Kind     CommentKind     `gorm:"not null"`
 	Category CommentCategory `gorm:"not null"`
@@ -88,9 +120,9 @@ type Comment struct {
 
 type Attachment struct {
 	Model
-	UploadedName string
+	UploadedName string `gorm:"type:varchar(100)"`
 	Size         int64
-	MimeType     string
+	MimeType     string `gorm:"type:varchar(100)"`
 	StorageName  string
 	Kind         AttachmentKind
 	TicketID     uuid.UUID `gorm:"type:varchar(36)"`
@@ -117,24 +149,15 @@ const (
 	PRIVATE CommentCategory = "Private"
 )
 
-type priority string
-
-const (
-	PR_Low    priority = "Low"
-	PR_Medium priority = "Medium"
-	PR_High   priority = "High"
-	PR_Urgent priority = "Urgent"
-)
-
 type Assignment struct {
 	Model
-	TickerID        uuid.UUID `gorm:"type:varchar(36)" json:"question_id"`
-	AgentID         uuid.UUID `gorm:"type:varchar(36)" json:"assignee_id"`
+	TickerID        uuid.UUID `gorm:"type:varchar(36)"`
+	AgentID         uuid.UUID `gorm:"type:varchar(36)"`
 	Assignment_date time.Time
 }
 
 type Knowledge struct {
 	Model
-	Problem  string
-	Solution string
+	Problem  string `gorm:"type:varchar(1000)"`
+	Solution string `gorm:"type:varchar(1000)"`
 }

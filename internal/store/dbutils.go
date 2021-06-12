@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/kouame-florent/axone-api/internal/axone"
+	"github.com/kouame-florent/axone-api/internal/config"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -21,7 +22,7 @@ func OpenDB(dsn string) *gorm.DB {
 
 func CreateSchema(db *gorm.DB) error {
 	log.Println("migrating db ...")
-	err := db.AutoMigrate(&axone.Organization{}, &axone.User{}, &axone.Role{}, &axone.EndUser{}, &axone.Agent{},
+	err := db.AutoMigrate(&axone.Organization{}, &axone.User{}, &axone.Role{}, &axone.Requester{}, &axone.Agent{},
 		&axone.Administrator{}, &axone.Ticket{}, &axone.Tag{}, &axone.Attachment{},
 		&axone.Comment{}, &axone.Assignment{}, &axone.Knowledge{})
 	return err
@@ -33,4 +34,9 @@ func CloseDB(db *gorm.DB) {
 		log.Fatal(err)
 	}
 	sqlDB.Close()
+}
+
+func NewDB() *gorm.DB {
+	dsn := config.DataSourceName()
+	return OpenDB(dsn)
 }

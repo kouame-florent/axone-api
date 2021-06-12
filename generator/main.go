@@ -1,4 +1,4 @@
-//go:generate ../bin/gen Organization User Role EndUser Agent Administrator Ticket Tag Attachment Comment Assignment Knowledge
+//go:generate ../bin/gen Requester
 package generator
 
 import "log"

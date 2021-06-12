@@ -6,9 +6,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/kouame-florent/axone-api/internal/store"
 	"github.com/spf13/viper"
-	"gorm.io/gorm"
 )
 
 const DefaultConfig = `
@@ -91,18 +89,4 @@ func DataSourceName() string {
 	}
 
 	return dsn
-}
-
-//Read from environment viriable ICENS_DEFAULT_LOCALITE
-func DefaultLocaliteCode() string {
-	return "cm-360"
-}
-
-func DefaultCentreCode() string {
-	return "ct-01"
-}
-
-func GetDB() *gorm.DB {
-	dsn := DataSourceName()
-	return store.OpenDB(dsn)
 }

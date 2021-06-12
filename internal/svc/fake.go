@@ -1,45 +1,57 @@
 package svc
 
 import (
+	"log"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/kouame-florent/axone-api/internal/axone"
-	"github.com/kouame-florent/axone-api/internal/config"
 	"github.com/kouame-florent/axone-api/internal/repo"
-	"github.com/kouame-florent/axone-api/internal/store"
+	"gorm.io/gorm"
 )
 
-func Createfakeorganization() (uuid.UUID, error) {
-	dsn := config.DataSourceName()
-	db := store.OpenDB(dsn)
+type FakeSvc struct {
+	DB *gorm.DB
+}
 
-	repo := repo.NewOrganizationRepo(db)
+func NewFakeSvc(db *gorm.DB) *FakeSvc {
+	return &FakeSvc{
+		DB: db,
+	}
+}
 
+func (s *FakeSvc) CreatefakeOrganization() (uuid.UUID, error) {
+
+	repo := repo.NewOrganizationRepo(s.DB)
+	id, err := uuid.Parse("fc16897d-82eb-45c3-b0c6-31bb71cf391b")
+	if err != nil {
+		log.Fatal(err)
+	}
 	o := &axone.Organization{
 		Model: axone.Model{
-			ID:        uuid.New(),
+			ID:        id,
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
-		Name: "DTI",
+		Name: "Central nucléaire",
 	}
-	err := repo.DB.Create(o).Error
+	err = repo.DB.Create(o).Error
 	if err != nil {
-		return o.ID, err
+		return uuid.UUID{}, err
 	}
-	return uuid.UUID{}, nil
+	return id, nil
 }
 
-func CreateFakeUser(organizationID uuid.UUID) (uuid.UUID, error) {
-	dsn := config.DataSourceName()
-	db := store.OpenDB(dsn)
+func (s *FakeSvc) CreateFakeUser(organizationID uuid.UUID) (uuid.UUID, error) {
 
-	repo := repo.NewUserRepo(db)
-
+	repo := repo.NewUserRepo(s.DB)
+	id, err := uuid.Parse("4a2bfb72-94ab-4fb2-b195-52dc1a12ffdb")
+	if err != nil {
+		log.Fatal(err)
+	}
 	u := &axone.User{
 		Model: axone.Model{
-			ID:        uuid.New(),
+			ID:        id,
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
@@ -52,25 +64,10 @@ func CreateFakeUser(organizationID uuid.UUID) (uuid.UUID, error) {
 		OrganizationID: organizationID,
 	}
 
-	err := repo.DB.Create(u).Error
+	err = repo.DB.Create(u).Error
 	if err != nil {
-		return u.ID, err
-	}
-	return uuid.UUID{}, nil
-}
 
-func CreateEndUser(userID uuid.UUID) (uuid.UUID, error) {
-	dsn := config.DataSourceName()
-	db := store.OpenDB(dsn)
-
-	repo := repo.NewUserRepo(db)
-
-	eu := &axone.EndUser{
-		UserID: userID,
+		return uuid.UUID{}, err
 	}
-	err := repo.DB.Create(eu).Error
-	if err != nil {
-		return userID, err
-	}
-	return uuid.UUID{}, nil
+	return id, nil
 }

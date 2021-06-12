@@ -9,4 +9,4 @@ gen: build_gen
 .PHONY:gen
 
 compile:
-	protoc -I=./api/ --go_out=./api --go-grpc_out=./api ./api/icens.proto
+	protoc -I=./api/ --go_out=./api --go-grpc_out=./api ./api/axone.proto
