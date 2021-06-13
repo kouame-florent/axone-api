@@ -1,8 +1,6 @@
-
 package repo
 
 import (
-
 	"github.com/google/uuid"
 	"github.com/kouame-florent/axone-api/internal/axone"
 	"gorm.io/gorm"
@@ -18,12 +16,12 @@ func NewAssignmentRepo(db *gorm.DB) *AssignmentRepo {
 	}
 }
 
-func (r *AssignmentRepo) Create(e *axone.Assignment) (uuid.UUID, error) {
+func (r *AssignmentRepo) Create(e *axone.Assignment) (uuid.UUID, uuid.UUID, error) {
 	tx := r.DB.Create(e)
 	if tx.Error != nil {
-		return uuid.UUID{}, tx.Error
+		return uuid.UUID{}, uuid.UUID{}, tx.Error
 	}
-	return e.ID, nil
+	return e.TicketID, e.AssigneeID, nil
 }
 
 func (r *AssignmentRepo) Find(id uuid.UUID) (*axone.Assignment, error) {
@@ -32,7 +30,7 @@ func (r *AssignmentRepo) Find(id uuid.UUID) (*axone.Assignment, error) {
 	if tx.Error != nil {
 		return &axone.Assignment{}, tx.Error
 	}
-	
+
 	return e, nil
 }
 
@@ -60,4 +58,3 @@ func (r *AssignmentRepo) Update(l *axone.Assignment) error {
 func (r *AssignmentRepo) Delete(l *axone.Assignment) error {
 	return nil
 }
-

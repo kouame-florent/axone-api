@@ -2,9 +2,11 @@ package server
 
 import (
 	"context"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/kouame-florent/axone-api/api/grpc/gen"
+	"github.com/kouame-florent/axone-api/internal/axone"
 	"github.com/kouame-florent/axone-api/internal/svc"
 )
 
@@ -19,17 +21,18 @@ func NewAxoneServer(svc *svc.TicketSvc) *AxoneServer {
 	}
 }
 
-func (s *AxoneServer) SendNewTicket(ctx context.Context, tr *gen.NewTicketRequest) (*gen.NewTicketResponse, error) {
-	ticketID, err := uuid.Parse(tr.TicketID)
+func (s *AxoneServer) SendNewTicket(ctx context.Context, nt *gen.NewTicketRequest) (*gen.NewTicketResponse, error) {
+	log.Printf("TICKETID: %s", nt.TicketID)
+	ticketID, err := uuid.Parse(nt.TicketID)
 	if err != nil {
 		return &gen.NewTicketResponse{}, err
 	}
-	requesterID, err := uuid.Parse(tr.RequesterID)
+	requesterID, err := uuid.Parse(nt.RequesterID)
 	if err != nil {
 		return &gen.NewTicketResponse{}, err
 	}
 
-	id, err := s.TicketSvc.SendNewTicket(ticketID, tr.Subject, tr.Request, requesterID)
+	id, err := s.TicketSvc.SendNewTicket(ticketID, nt.Subject, nt.Request, axone.TicketType(nt.Type), requesterID)
 	if err != nil {
 		return &gen.NewTicketResponse{}, err
 	}

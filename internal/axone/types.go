@@ -4,12 +4,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Model struct {
 	ID        uuid.UUID `gorm:"type:varchar(36);primaryKey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt
 }
 
 type User struct {
@@ -36,9 +38,9 @@ type Role struct {
 type RoleValue string
 
 const (
-	ROLE_REQUESTER     RoleValue = "REQUESTER"
-	ROLE_AGENT         RoleValue = "AGENT"
-	ROLE_ADMINISTRATOR RoleValue = "ADMINISTRATOR"
+	ROLE_VALUE_REQUESTER     RoleValue = "requester"
+	ROLE_VALUE_AGENT         RoleValue = "agent"
+	ROLE_VALUE_ADMINISTRATOR RoleValue = "administrator"
 )
 
 type Requester struct {
@@ -47,17 +49,17 @@ type Requester struct {
 }
 
 type Agent struct {
-	UserID  uuid.UUID `gorm:"type:varchar(36)"`
-	Bio     string
-	Level   AgentLevel
-	Tickets []Ticket `gorm:"foreignKey:AssigneeID;references:UserID"`
+	UserID      uuid.UUID `gorm:"type:varchar(36)"`
+	Bio         string
+	Level       AgentLevel
+	Assignments []Assignment `gorm:"foreignKey:AssigneeID;references:UserID"`
 }
 
 type AgentLevel string
 
 const (
-	LEVEL_ONE AgentLevel = "ONE" //can manage ticket with any status
-	LEVEL_TWO AgentLevel = "TWO" //cannot manage ticket with new status
+	AGENT_LEVEL_ONE AgentLevel = "one" //can manage ticket with any status and route to any agent
+	AGENT_LEVEL_TWO AgentLevel = "two" //cannot manage ticket with new status, can route to agent in the same organization only
 )
 
 type Administrator struct {
@@ -76,12 +78,12 @@ type Ticket struct {
 	Request     string    `gorm:"type:varchar(1000)"`
 	Answer      string    `gorm:"type:varchar(1000)"`
 	RequesterID uuid.UUID `gorm:"type:varchar(36)"`
-	AssigneeID  uuid.UUID `gorm:"type:varchar(36)"`
 	Status      TicketStatus
 	Type        TicketType
 	Priority    TicketPriority
 	Rate        uint
 	Tags        []*Tag `gorm:"many2many:ticket_tags;"`
+	Assignments []Assignment
 	Comments    []Comment
 	Attachments []Attachment
 }
@@ -89,19 +91,38 @@ type Ticket struct {
 type TicketType string
 
 const (
-	TICKET_TYPE_QUESTION TicketType = "Question"
-	TICKET_TYPE_PROBLEM  TicketType = "Problem"
-	TICKET_TYPE_TASK     TicketType = "Task"
+	TICKET_TYPE_QUESTION TicketType = "question"
+	TICKET_TYPE_PROBLEM  TicketType = "problem"
+	TICKET_TYPE_TASK     TicketType = "task"
 )
 
 //ticket priority are only seen by agents
 type TicketPriority string
 
 const (
-	TICKET_PRIORITY_LOW    TicketPriority = "Low"
-	TICKET_PRIORITY_MEDIUM TicketPriority = "Medium"
-	TICKET_PRIORITY_HIGH   TicketPriority = "High"
-	TICKET_PRIORITY_URGENT TicketPriority = "Urgent"
+	TICKET_PRIORITY_LOW    TicketPriority = "low"
+	TICKET_PRIORITY_MEDIUM TicketPriority = "medium"
+	TICKET_PRIORITY_HIGH   TicketPriority = "high"
+	TICKET_PRIORITY_URGENT TicketPriority = "urgent"
+)
+
+type Assignment struct {
+	//	Model
+	TicketID   uuid.UUID `gorm:"type:varchar(36);primaryKey"`
+	AssigneeID uuid.UUID `gorm:"type:varchar(36);primaryKey"`
+	//Assignment_date time.Time
+	Status         AssignmentStatus
+	DisabledReason string `gorm:"type:varchar(150)"`
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      gorm.DeletedAt
+}
+
+type AssignmentStatus string
+
+const (
+	ASSIGNMENT_STATUS_ENABLED  AssignmentStatus = "enabled"
+	ASSIGNMENT_STATUS_DISABLED AssignmentStatus = "disabled"
 )
 
 type Tag struct {
@@ -131,30 +152,23 @@ type Attachment struct {
 type AttachmentKind string
 
 const (
-	QUESTION_ATTACHMENT AttachmentKind = "QUESTION"
-	ANSWER_ATTACHMENT   AttachmentKind = "ANSWER"
+	ATTACHMENT_KIND_QUESTION AttachmentKind = "question"
+	ATTACHMENT_KIND_ANSWER   AttachmentKind = "answer"
 )
 
 type CommentKind string
 
 const (
-	QUESTION CommentKind = "QUESTION"
-	ANSWER   CommentKind = "ANSWER"
+	COMMENT_KIND_QUESTION CommentKind = "question"
+	COMMENT_KIND_ANSWER   CommentKind = "answer"
 )
 
 type CommentCategory string
 
 const (
-	PUBLIC  CommentCategory = "Public"
-	PRIVATE CommentCategory = "Private"
+	COMMENT_CATEGORY_PUBLIC  CommentCategory = "public"
+	COMMENT_CATEGORY_PRIVATE CommentCategory = "private"
 )
-
-type Assignment struct {
-	Model
-	TickerID        uuid.UUID `gorm:"type:varchar(36)"`
-	AgentID         uuid.UUID `gorm:"type:varchar(36)"`
-	Assignment_date time.Time
-}
 
 type Knowledge struct {
 	Model

@@ -1,4 +1,4 @@
-//go:generate ../bin/gen Requester
+//go:generate ../bin/gen Assignment
 package generator
 
 import "log"

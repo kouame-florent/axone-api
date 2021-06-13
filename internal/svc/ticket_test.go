@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/kouame-florent/axone-api/internal/axone"
 	"github.com/kouame-florent/axone-api/internal/config"
 	"github.com/kouame-florent/axone-api/internal/repo"
 	"github.com/kouame-florent/axone-api/internal/store"
@@ -41,7 +42,7 @@ func TestMain(m *testing.M) {
 	rep := repo.NewRequesterRepo(db)
 	eus := NewEndUserSvc(rep)
 
-	endUserID, err = eus.CreateEndUser(uID)
+	requesterID, err = eus.CreateRequester(uID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,7 +53,7 @@ func TestMain(m *testing.M) {
 
 }
 
-var endUserID uuid.UUID
+var requesterID uuid.UUID
 
 func TestSendNewTicket(t *testing.T) {
 	rep := repo.NewTicketRepo(db)
@@ -62,7 +63,10 @@ func TestSendNewTicket(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	id, err := s.SendNewTicket(tID, "Réacteur en surchauffe", "comment refroidir le réacteur en surchauffe", endUserID)
+
+	log.Printf("RequesterID: %s", requesterID)
+	id, err := s.SendNewTicket(tID, "Réacteur en surchauffe", "comment refroidir le réacteur en surchauffe",
+		axone.TICKET_TYPE_PROBLEM, requesterID)
 	if err != nil {
 		t.Errorf("expected no errors got: %v", err)
 	}

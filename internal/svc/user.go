@@ -16,7 +16,7 @@ func NewEndUserSvc(r *repo.RequesterRepo) *RequesterSvc {
 	}
 }
 
-func (s *RequesterSvc) CreateEndUser(userID uuid.UUID) (uuid.UUID, error) {
+func (s *RequesterSvc) CreateRequester(userID uuid.UUID) (uuid.UUID, error) {
 	eu := &axone.Requester{
 		UserID: userID,
 	}
@@ -24,5 +24,5 @@ func (s *RequesterSvc) CreateEndUser(userID uuid.UUID) (uuid.UUID, error) {
 	if err != nil {
 		return id, err
 	}
-	return uuid.UUID{}, nil
+	return id, nil
 }

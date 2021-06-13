@@ -19,7 +19,7 @@ func NewTicketSvc(r *repo.TicketRepo) *TicketSvc {
 }
 
 //send ticket and return it ID
-func (s *TicketSvc) SendNewTicket(ticketID uuid.UUID, subject, request string, requesterID uuid.UUID) (uuid.UUID, error) {
+func (s *TicketSvc) SendNewTicket(ticketID uuid.UUID, subject, request string, ticketType axone.TicketType, requesterID uuid.UUID) (uuid.UUID, error) {
 	t := &axone.Ticket{
 		Model: axone.Model{
 			ID:        ticketID,
@@ -28,11 +28,17 @@ func (s *TicketSvc) SendNewTicket(ticketID uuid.UUID, subject, request string, r
 		},
 		Subject:     subject,
 		Request:     request,
+		Type:        axone.TicketType(ticketType),
 		RequesterID: requesterID,
 		Status:      axone.TICKET_STATUS_NEW,
 	}
 
-	return t.ID, nil
+	id, err := s.Repo.Create(t)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	return id, nil
 
 }
 
