@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"os"
 
 	"github.com/kouame-florent/axone-api/api/grpc/gen"
 	"github.com/kouame-florent/axone-api/api/grpc/server"
@@ -10,6 +11,7 @@ import (
 	"github.com/kouame-florent/axone-api/internal/repo"
 	"github.com/kouame-florent/axone-api/internal/store"
 	"github.com/kouame-florent/axone-api/internal/svc"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -18,7 +20,24 @@ const (
 )
 
 func main() {
-	buildSqlSchema()
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	zap.ReplaceGlobals(logger)
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	config.InitEnv(home)
+	err = config.CreateAttachmentFolder(home)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	buildSqlSchema() //only for test must be removed
 	StartGrpcServer()
 
 }

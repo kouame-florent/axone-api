@@ -38,9 +38,9 @@ type Role struct {
 type RoleValue string
 
 const (
-	ROLE_VALUE_REQUESTER     RoleValue = "requester"
-	ROLE_VALUE_AGENT         RoleValue = "agent"
-	ROLE_VALUE_ADMINISTRATOR RoleValue = "administrator"
+	ROLE_VALUE_REQUESTER     RoleValue = "REQUESTER"
+	ROLE_VALUE_AGENT         RoleValue = "AGENT"
+	ROLE_VALUE_ADMINISTRATOR RoleValue = "ADMINISTRATOR"
 )
 
 type Requester struct {
@@ -58,8 +58,8 @@ type Agent struct {
 type AgentLevel string
 
 const (
-	AGENT_LEVEL_ONE AgentLevel = "one" //can manage ticket with any status and route to any agent
-	AGENT_LEVEL_TWO AgentLevel = "two" //cannot manage ticket with new status, can route to agent in the same organization only
+	AGENT_LEVEL_ONE AgentLevel = "ONE" //can manage ticket with any status and route to any agent
+	AGENT_LEVEL_TWO AgentLevel = "TWO" //cannot manage ticket with new status, can route to agent in the same organization only
 )
 
 type Administrator struct {
@@ -79,7 +79,7 @@ type Ticket struct {
 	Answer      string    `gorm:"type:varchar(1000)"`
 	RequesterID uuid.UUID `gorm:"type:varchar(36)"`
 	Status      TicketStatus
-	Type        TicketType
+	TicketType  TicketType
 	Priority    TicketPriority
 	Rate        uint
 	Tags        []*Tag `gorm:"many2many:ticket_tags;"`
@@ -88,22 +88,32 @@ type Ticket struct {
 	Attachments []Attachment
 }
 
+type TicketStatus string
+
+const (
+	TICKET_STATUS_NEW     TicketStatus = "NEW"     //after creation
+	TICKET_STATUS_OPEN    TicketStatus = "OPEN"    //has been evaluated and is assigned
+	TICKET_STATUS_PENDING TicketStatus = "PENDING" //need more informations from end user
+	TICKET_STATUS_SOLVED  TicketStatus = "SOLVED"  //issue no longer exists, or the work has been completed
+	TICKET_STATUS_CLOSED  TicketStatus = "CLOSED"  //resolved and a sufficient amount of time has passed (1 week)
+)
+
 type TicketType string
 
 const (
-	TICKET_TYPE_QUESTION TicketType = "question"
-	TICKET_TYPE_PROBLEM  TicketType = "problem"
-	TICKET_TYPE_TASK     TicketType = "task"
+	TICKET_TYPE_QUESTION TicketType = "QUESTION"
+	TICKET_TYPE_PROBLEM  TicketType = "PROBLEM"
+	TICKET_TYPE_TASK     TicketType = "TASK"
 )
 
 //ticket priority are only seen by agents
 type TicketPriority string
 
 const (
-	TICKET_PRIORITY_LOW    TicketPriority = "low"
-	TICKET_PRIORITY_MEDIUM TicketPriority = "medium"
-	TICKET_PRIORITY_HIGH   TicketPriority = "high"
-	TICKET_PRIORITY_URGENT TicketPriority = "urgent"
+	TICKET_PRIORITY_LOW    TicketPriority = "LOW"
+	TICKET_PRIORITY_MEDIUM TicketPriority = "MEDIUM"
+	TICKET_PRIORITY_HIGH   TicketPriority = "HIGH"
+	TICKET_PRIORITY_URGENT TicketPriority = "URGENT"
 )
 
 type Assignment struct {
@@ -121,8 +131,8 @@ type Assignment struct {
 type AssignmentStatus string
 
 const (
-	ASSIGNMENT_STATUS_ENABLED  AssignmentStatus = "enabled"
-	ASSIGNMENT_STATUS_DISABLED AssignmentStatus = "disabled"
+	ASSIGNMENT_STATUS_ENABLED  AssignmentStatus = "ENABLED"
+	ASSIGNMENT_STATUS_DISABLED AssignmentStatus = "DISABLED"
 )
 
 type Tag struct {
@@ -142,7 +152,7 @@ type Comment struct {
 type Attachment struct {
 	Model
 	UploadedName string `gorm:"type:varchar(100)"`
-	Size         int64
+	Size         uint32
 	MimeType     string `gorm:"type:varchar(100)"`
 	StorageName  string
 	Kind         AttachmentKind
@@ -152,22 +162,22 @@ type Attachment struct {
 type AttachmentKind string
 
 const (
-	ATTACHMENT_KIND_QUESTION AttachmentKind = "question"
-	ATTACHMENT_KIND_ANSWER   AttachmentKind = "answer"
+	ATTACHMENT_KIND_REQUEST AttachmentKind = "REQUEST"
+	ATTACHMENT_KIND_ANSWER  AttachmentKind = "ANSWER"
 )
 
 type CommentKind string
 
 const (
-	COMMENT_KIND_QUESTION CommentKind = "question"
-	COMMENT_KIND_ANSWER   CommentKind = "answer"
+	COMMENT_KIND_QUESTION CommentKind = "QUESTION"
+	COMMENT_KIND_ANSWER   CommentKind = "ANSWER"
 )
 
 type CommentCategory string
 
 const (
-	COMMENT_CATEGORY_PUBLIC  CommentCategory = "public"
-	COMMENT_CATEGORY_PRIVATE CommentCategory = "private"
+	COMMENT_CATEGORY_PUBLIC  CommentCategory = "PUBLIC"
+	COMMENT_CATEGORY_PRIVATE CommentCategory = "PRIVATE"
 )
 
 type Knowledge struct {

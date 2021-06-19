@@ -18,6 +18,17 @@ var db *gorm.DB
 
 func TestMain(m *testing.M) {
 
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	config.InitEnv(home)
+	err = config.CreateAttachmentFolder(home)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	dsn = config.DataSourceName()
 	db = store.OpenDB(dsn)
 
@@ -56,6 +67,7 @@ func TestMain(m *testing.M) {
 var requesterID uuid.UUID
 
 func TestSendNewTicket(t *testing.T) {
+
 	rep := repo.NewTicketRepo(db)
 	s := NewTicketSvc(rep)
 

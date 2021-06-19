@@ -5,6 +5,30 @@ option go_package = "grpc/gen" ;
 
 service Axone {
     rpc SendNewTicket(NewTicketRequest) returns (NewTicketResponse);
+    rpc SendAttachment(stream AttachmentRequest) returns (AttachmentResponse);
+
+    rpc ListAgentTickets(AgentTicketsListRequest) returns (AgentTicketsListResponse);
+}
+
+message AttachmentRequest {
+    oneof data {
+        AttachmentInfo info = 1;
+        bytes chunk_data = 2;
+      };
+}
+
+message AttachmentResponse {
+    string ticketID = 1;
+    uint32 size = 2;
+  }
+  
+
+message AttachmentInfo{
+	string uploadedName = 1;
+	uint32 size          = 2;
+	string mimeType     = 3;
+	//string storageName  = 4;
+	string ticketID     = 5;
 }
 
 message NewTicketRequest {
@@ -17,4 +41,27 @@ message NewTicketRequest {
 
 message NewTicketResponse {
     string ID = 1;
+}
+
+message Ticket {
+    string subject           = 1;      
+	string request           = 2;      
+	string answer            = 3;      
+	string requesterID       = 4;
+    string requesterEmail    = 5;
+    string requesterFullName = 6;
+	string status            = 7;   
+	string type              = 8;    
+	string priority          = 9;
+	uint32 rate              = 10;        
+}
+
+message AgentTicketsListRequest {
+    string status       = 1;   
+	string type         = 2;    
+
+} 
+
+message AgentTicketsListResponse {
+    repeated Ticket tickets = 1; 
 }

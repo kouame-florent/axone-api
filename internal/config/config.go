@@ -27,6 +27,10 @@ const (
 	PRODUCTION environment = "prod"
 )
 
+const (
+	attachment = ".ax-attachment"
+)
+
 func createConfigFile(home string) {
 	content := []byte(strings.TrimPrefix(DefaultConfig, "\n"))
 	cfgFile := path.Join(home, ".axone.yaml")
@@ -39,14 +43,22 @@ func createConfigFile(home string) {
 
 }
 
-func InitConfig() {
+func InitEnv(home string) {
 	// Find home directory.
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
+	/*
+		home, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
 
 	createConfigFile(home)
+	/*
+		err = createAttachmentFolder(home)
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
 
 	// Search config in home directory with name ".icens" (without extension).
 	viper.AddConfigPath(home)
@@ -67,10 +79,11 @@ func InitConfig() {
 			log.Fatal(err)
 		}
 	}
+
 }
 
 func DataSourceName() string {
-	InitConfig()
+	//InitConfig()
 
 	env := viper.GetString("AXONE_ENV")
 	if env == "" {
@@ -89,4 +102,29 @@ func DataSourceName() string {
 	}
 
 	return dsn
+}
+
+func CreateAttachmentFolder(home string) error {
+	pathStr := path.Join(home, attachment)
+
+	if _, err := os.Stat(pathStr); err != nil {
+		log.Print("attachment folder not found")
+		log.Print("creating attachment folder...")
+		err := os.MkdirAll(pathStr, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
+
+func AttachmentPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return path.Join(home, attachment), nil
+
 }

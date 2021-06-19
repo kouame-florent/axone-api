@@ -2,16 +2,6 @@ package axone
 
 import "fmt"
 
-type TicketStatus string
-
-const (
-	TICKET_STATUS_NEW     TicketStatus = "New"     //after creation
-	TICKET_STATUS_OPEN    TicketStatus = "Open"    //has been evaluated and is assigned
-	TICKET_STATUS_PENDING TicketStatus = "Pending" //need more informations from end user
-	TICKET_STATUS_SOLVED  TicketStatus = "Solved"  //issue no longer exists, or the work has been completed
-	TICKET_STATUS_CLOSED  TicketStatus = "Closed"  //resolved and a sufficient amount of time has passed (1 week)
-)
-
 type Event uint
 
 const (
