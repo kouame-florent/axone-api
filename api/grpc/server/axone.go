@@ -5,6 +5,8 @@ import (
 	"context"
 	"io"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/kouame-florent/axone-api/api/grpc/gen"
@@ -22,13 +24,21 @@ const maxAttchmentSize = 20 << 20 //1 Mi
 
 type AxoneServer struct {
 	gen.UnimplementedAxoneServer
-	TicketSvc *svc.TicketSvc
+	TicketSvc   *svc.TicketSvc
+	subscribers sync.Map
+}
+
+type sub struct {
+	stream   gen.Axone_SubscribeServer // stream is the server side of the RPC stream
+	finished chan<- bool               // finished is used to signal closure of a client subscribing goroutine
 }
 
 func NewAxoneServer(svc *svc.TicketSvc) *AxoneServer {
-	return &AxoneServer{
+	server := &AxoneServer{
 		TicketSvc: svc,
 	}
+
+	return server
 }
 
 func (s *AxoneServer) SendNewTicket(ctx context.Context, req *gen.NewTicketRequest) (*gen.NewTicketResponse, error) {
@@ -50,6 +60,9 @@ func (s *AxoneServer) SendNewTicket(ctx context.Context, req *gen.NewTicketReque
 	resp := &gen.NewTicketResponse{
 		ID: id.String(),
 	}
+
+	//notify ax client to refresh tickets list
+	s.SendNotification("TICKETS_AVAILABLE")
 
 	return resp, nil
 }
@@ -165,31 +178,45 @@ func (s *AxoneServer) ListAgentTickets(ctx context.Context,
 	return ticketsListResp, nil
 }
 
-/*
-func saveMeta(db *gorm.DB, req *gen.AttachmentRequest, storgeName string) (uuid.UUID, error) {
-	meta := req.GetInfo()
-	storageName := storgeName
-	tickerID, err := uuid.Parse(meta.GetTicketID())
-	if err != nil {
-		return uuid.UUID{}, err
-	}
+func (s *AxoneServer) Subscribe(req *gen.NotificationRequest, stream gen.Axone_SubscribeServer) error {
+	fin := make(chan bool)
+	s.subscribers.Store(req.Id, sub{stream: stream, finished: fin})
 
-	att := &axone.Attachment{
-		Model: axone.Model{
-			ID:        uuid.New(),
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-		UploadedName: meta.GetUploadedName(),
-		MimeType:     meta.GetMimeType(),
-		Size:         meta.GetSize(),
-		StorageName:  storageName,
-		Kind:         axone.ATTACHMENT_KIND_REQUEST,
-		TicketID:     tickerID,
+	ctx := stream.Context()
+	// Keep this scope alive because once this scope exits - the stream is closed
+	for {
+		select {
+		case <-fin:
+			log.Printf("Closing stream for client ID: %s", req.Id)
+			return nil
+		case <-ctx.Done():
+			log.Printf("Client ID %s has disconnected", req.Id)
+			return nil
+		}
 	}
-
-	rep := repo.NewAttachmentRepo(db)
-	return rep.Create(att)
 
 }
-*/
+
+func (s *AxoneServer) SendNotification(msg string) {
+	s.subscribers.Range(func(k, v interface{}) bool {
+		_, ok := k.(string)
+		if !ok {
+			log.Printf("Failed to cast subscriber key: %T", k)
+			return false
+		}
+		sub, ok := v.(sub)
+		if !ok {
+			log.Printf("Failed to cast subscriber value: %T", v)
+			return false
+		}
+		notification := &gen.NotificationResponse{
+			Message: msg,
+			Time:    time.Now().UnixNano(),
+		}
+		if err := sub.stream.Send(notification); err != nil {
+			log.Printf("Failed to send data to client: %v", err)
+		}
+		return true
+	})
+
+}

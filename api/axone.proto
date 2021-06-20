@@ -8,6 +8,8 @@ service Axone {
     rpc SendAttachment(stream AttachmentRequest) returns (AttachmentResponse);
 
     rpc ListAgentTickets(AgentTicketsListRequest) returns (AgentTicketsListResponse);
+
+    rpc Subscribe(NotificationRequest) returns (stream NotificationResponse);
 }
 
 message AttachmentRequest {
@@ -64,4 +66,13 @@ message AgentTicketsListRequest {
 
 message AgentTicketsListResponse {
     repeated Ticket tickets = 1; 
+}
+
+message NotificationRequest {
+    string id = 1;
+}
+
+message NotificationResponse {
+    string message = 1;
+    int64 time     = 2;
 }

@@ -21,6 +21,7 @@ type AxoneClient interface {
 	SendNewTicket(ctx context.Context, in *NewTicketRequest, opts ...grpc.CallOption) (*NewTicketResponse, error)
 	SendAttachment(ctx context.Context, opts ...grpc.CallOption) (Axone_SendAttachmentClient, error)
 	ListAgentTickets(ctx context.Context, in *AgentTicketsListRequest, opts ...grpc.CallOption) (*AgentTicketsListResponse, error)
+	Subscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (Axone_SubscribeClient, error)
 }
 
 type axoneClient struct {
@@ -83,6 +84,38 @@ func (c *axoneClient) ListAgentTickets(ctx context.Context, in *AgentTicketsList
 	return out, nil
 }
 
+func (c *axoneClient) Subscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (Axone_SubscribeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Axone_ServiceDesc.Streams[1], "/api.Axone/Subscribe", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &axoneSubscribeClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Axone_SubscribeClient interface {
+	Recv() (*NotificationResponse, error)
+	grpc.ClientStream
+}
+
+type axoneSubscribeClient struct {
+	grpc.ClientStream
+}
+
+func (x *axoneSubscribeClient) Recv() (*NotificationResponse, error) {
+	m := new(NotificationResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AxoneServer is the server API for Axone service.
 // All implementations must embed UnimplementedAxoneServer
 // for forward compatibility
@@ -90,6 +123,7 @@ type AxoneServer interface {
 	SendNewTicket(context.Context, *NewTicketRequest) (*NewTicketResponse, error)
 	SendAttachment(Axone_SendAttachmentServer) error
 	ListAgentTickets(context.Context, *AgentTicketsListRequest) (*AgentTicketsListResponse, error)
+	Subscribe(*NotificationRequest, Axone_SubscribeServer) error
 	mustEmbedUnimplementedAxoneServer()
 }
 
@@ -105,6 +139,9 @@ func (UnimplementedAxoneServer) SendAttachment(Axone_SendAttachmentServer) error
 }
 func (UnimplementedAxoneServer) ListAgentTickets(context.Context, *AgentTicketsListRequest) (*AgentTicketsListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAgentTickets not implemented")
+}
+func (UnimplementedAxoneServer) Subscribe(*NotificationRequest, Axone_SubscribeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
 }
 func (UnimplementedAxoneServer) mustEmbedUnimplementedAxoneServer() {}
 
@@ -181,6 +218,27 @@ func _Axone_ListAgentTickets_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Axone_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(NotificationRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AxoneServer).Subscribe(m, &axoneSubscribeServer{stream})
+}
+
+type Axone_SubscribeServer interface {
+	Send(*NotificationResponse) error
+	grpc.ServerStream
+}
+
+type axoneSubscribeServer struct {
+	grpc.ServerStream
+}
+
+func (x *axoneSubscribeServer) Send(m *NotificationResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Axone_ServiceDesc is the grpc.ServiceDesc for Axone service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -202,6 +260,11 @@ var Axone_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "SendAttachment",
 			Handler:       _Axone_SendAttachment_Handler,
 			ClientStreams: true,
+		},
+		{
+			StreamName:    "Subscribe",
+			Handler:       _Axone_Subscribe_Handler,
+			ServerStreams: true,
 		},
 	},
 	Metadata: "axone.proto",
