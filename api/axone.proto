@@ -10,6 +10,7 @@ service Axone {
     rpc ListAgentTickets(AgentTicketsListRequest) returns (AgentTicketsListResponse);
 
     rpc Subscribe(NotificationRequest) returns (stream NotificationResponse);
+    rpc Unsubscribe(NotificationRequest) returns (NotificationResponse);
 }
 
 message AttachmentRequest {

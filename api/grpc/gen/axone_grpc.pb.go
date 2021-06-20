@@ -22,6 +22,7 @@ type AxoneClient interface {
 	SendAttachment(ctx context.Context, opts ...grpc.CallOption) (Axone_SendAttachmentClient, error)
 	ListAgentTickets(ctx context.Context, in *AgentTicketsListRequest, opts ...grpc.CallOption) (*AgentTicketsListResponse, error)
 	Subscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (Axone_SubscribeClient, error)
+	Unsubscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (*NotificationResponse, error)
 }
 
 type axoneClient struct {
@@ -116,6 +117,15 @@ func (x *axoneSubscribeClient) Recv() (*NotificationResponse, error) {
 	return m, nil
 }
 
+func (c *axoneClient) Unsubscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (*NotificationResponse, error) {
+	out := new(NotificationResponse)
+	err := c.cc.Invoke(ctx, "/api.Axone/Unsubscribe", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AxoneServer is the server API for Axone service.
 // All implementations must embed UnimplementedAxoneServer
 // for forward compatibility
@@ -124,6 +134,7 @@ type AxoneServer interface {
 	SendAttachment(Axone_SendAttachmentServer) error
 	ListAgentTickets(context.Context, *AgentTicketsListRequest) (*AgentTicketsListResponse, error)
 	Subscribe(*NotificationRequest, Axone_SubscribeServer) error
+	Unsubscribe(context.Context, *NotificationRequest) (*NotificationResponse, error)
 	mustEmbedUnimplementedAxoneServer()
 }
 
@@ -142,6 +153,9 @@ func (UnimplementedAxoneServer) ListAgentTickets(context.Context, *AgentTicketsL
 }
 func (UnimplementedAxoneServer) Subscribe(*NotificationRequest, Axone_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
+}
+func (UnimplementedAxoneServer) Unsubscribe(context.Context, *NotificationRequest) (*NotificationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Unsubscribe not implemented")
 }
 func (UnimplementedAxoneServer) mustEmbedUnimplementedAxoneServer() {}
 
@@ -239,6 +253,24 @@ func (x *axoneSubscribeServer) Send(m *NotificationResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Axone_Unsubscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NotificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AxoneServer).Unsubscribe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Axone/Unsubscribe",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AxoneServer).Unsubscribe(ctx, req.(*NotificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Axone_ServiceDesc is the grpc.ServiceDesc for Axone service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -253,6 +285,10 @@ var Axone_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAgentTickets",
 			Handler:    _Axone_ListAgentTickets_Handler,
+		},
+		{
+			MethodName: "Unsubscribe",
+			Handler:    _Axone_Unsubscribe_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

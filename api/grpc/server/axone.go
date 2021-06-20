@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"sync"
@@ -197,9 +198,32 @@ func (s *AxoneServer) Subscribe(req *gen.NotificationRequest, stream gen.Axone_S
 
 }
 
+func (s *AxoneServer) Unsubscribe(ctx context.Context, req *gen.NotificationRequest) (*gen.NotificationResponse, error) {
+	v, ok := s.subscribers.Load(req.Id)
+	if !ok {
+		return nil, fmt.Errorf("failed to load subscriber key: %s", req.Id)
+	}
+	sub, ok := v.(sub)
+	if !ok {
+		return nil, fmt.Errorf("failed to cast subscriber value: %T", v)
+	}
+	select {
+	case sub.finished <- true:
+		log.Printf("Unsubscribed client: %s", req.Id)
+	default:
+		// Default case is to avoid blocking in case client has already unsubscribed
+	}
+	s.subscribers.Delete(req.Id)
+	return &gen.NotificationResponse{}, nil
+}
+
 func (s *AxoneServer) SendNotification(msg string) {
+
+	// A list of clients to unsubscribe in case of error
+	var unsubscribe []string
+
 	s.subscribers.Range(func(k, v interface{}) bool {
-		_, ok := k.(string)
+		id, ok := k.(string)
 		if !ok {
 			log.Printf("Failed to cast subscriber key: %T", k)
 			return false
@@ -215,8 +239,20 @@ func (s *AxoneServer) SendNotification(msg string) {
 		}
 		if err := sub.stream.Send(notification); err != nil {
 			log.Printf("Failed to send data to client: %v", err)
+			select {
+			case sub.finished <- true:
+				log.Printf("Unsubscribed client: %s", id)
+			default:
+				// Default case is to avoid blocking in case client has already unsubscribed
+			}
+			// In case of error the client would re-subscribe so close the subscriber stream
+			unsubscribe = append(unsubscribe, id)
 		}
 		return true
 	})
-
+	// Unsubscribe erroneous client streams
+	for _, id := range unsubscribe {
+		log.Printf("Unsubscribing client: %s", id)
+		s.subscribers.Delete(id)
+	}
 }
