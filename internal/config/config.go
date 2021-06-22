@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -31,6 +32,23 @@ const (
 	attachment = ".ax-attachment"
 )
 
+var (
+	CAFile         = certFile("ca.pem")
+	ServerCertFile = certFile("server.pem")
+	ServerKeyFile  = certFile("server-key.pem")
+)
+
+func certFile(filename string) string {
+	if dir := os.Getenv("CERTS_DIR"); dir != "" {
+		return filepath.Join(dir, filename)
+	}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	return filepath.Join(homeDir, ".axone-api", filename)
+}
+
 func createConfigFile(home string) {
 	content := []byte(strings.TrimPrefix(DefaultConfig, "\n"))
 	cfgFile := path.Join(home, ".axone.yaml")
@@ -44,21 +62,8 @@ func createConfigFile(home string) {
 }
 
 func InitEnv(home string) {
-	// Find home directory.
-	/*
-		home, err := os.UserHomeDir()
-		if err != nil {
-			log.Fatal(err)
-		}
-	*/
 
 	createConfigFile(home)
-	/*
-		err = createAttachmentFolder(home)
-		if err != nil {
-			log.Fatal(err)
-		}
-	*/
 
 	// Search config in home directory with name ".icens" (without extension).
 	viper.AddConfigPath(home)

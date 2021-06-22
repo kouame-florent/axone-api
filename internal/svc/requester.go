@@ -10,7 +10,7 @@ type RequesterSvc struct {
 	Repo *repo.RequesterRepo
 }
 
-func NewEndUserSvc(r *repo.RequesterRepo) *RequesterSvc {
+func NewRequesterSvc(r *repo.RequesterRepo) *RequesterSvc {
 	return &RequesterSvc{
 		Repo: r,
 	}

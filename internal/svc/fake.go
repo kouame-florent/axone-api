@@ -42,7 +42,7 @@ func (s *FakeSvc) CreatefakeOrganization() (uuid.UUID, error) {
 	return id, nil
 }
 
-func (s *FakeSvc) CreateFakeUser(organizationID uuid.UUID) (uuid.UUID, error) {
+func (s *FakeSvc) CreateFakeRequesterUser(organizationID uuid.UUID) (uuid.UUID, error) {
 
 	repo := repo.NewUserRepo(s.DB)
 	id, err := uuid.Parse("4a2bfb72-94ab-4fb2-b195-52dc1a12ffdb")
@@ -61,6 +61,36 @@ func (s *FakeSvc) CreateFakeUser(organizationID uuid.UUID) (uuid.UUID, error) {
 		PhoneNumber:    "225-05-05-45-78-65",
 		Login:          "homer",
 		Password:       "homer",
+		OrganizationID: organizationID,
+	}
+
+	err = repo.DB.Create(u).Error
+	if err != nil {
+
+		return uuid.UUID{}, err
+	}
+	return id, nil
+}
+
+func (s *FakeSvc) CreateFakeLevelOneAgentUser(organizationID uuid.UUID) (uuid.UUID, error) {
+
+	repo := repo.NewUserRepo(s.DB)
+	id, err := uuid.Parse("56a680d0-47c4-48b8-9ad5-6eff936d4d75")
+	if err != nil {
+		log.Fatal(err)
+	}
+	u := &axone.User{
+		Model: axone.Model{
+			ID:        id,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		FirstName:      "Lisa",
+		LastName:       "Simpson",
+		Email:          "lisa.simpson@gmail.com",
+		PhoneNumber:    "225-04-04-44-78-65",
+		Login:          "lisa",
+		Password:       "lisa",
 		OrganizationID: organizationID,
 	}
 

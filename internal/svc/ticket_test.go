@@ -45,15 +45,28 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	uID, err := fs.CreateFakeUser(orgID)
+	uID, err := fs.CreateFakeRequesterUser(orgID)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	rep := repo.NewRequesterRepo(db)
-	eus := NewEndUserSvc(rep)
+	eus := NewRequesterSvc(rep)
 
 	requesterID, err = eus.CreateRequester(uID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	auid, err := fs.CreateFakeLevelOneAgentUser(orgID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	agtRep := repo.NewAgentRepo(db)
+	as := NewAgentSvc(agtRep)
+
+	agentID, err = as.CreateAgent(auid, axone.AGENT_LEVEL_ONE, "maitrise en histoire")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,6 +78,7 @@ func TestMain(m *testing.M) {
 }
 
 var requesterID uuid.UUID
+var agentID uuid.UUID
 
 func TestSendNewTicket(t *testing.T) {
 

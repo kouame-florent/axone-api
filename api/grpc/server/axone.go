@@ -256,3 +256,10 @@ func (s *AxoneServer) SendNotification(msg string) {
 		s.subscribers.Delete(id)
 	}
 }
+
+func (s *AxoneServer) Login(ctx context.Context, req *gen.LoginRequest) (*gen.LoginResponse, error) {
+	return &gen.LoginResponse{
+		AuthToken: "homer;homer",
+		RoleToken: "requester",
+	}, nil
+}

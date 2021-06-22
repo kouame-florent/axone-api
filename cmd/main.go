@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
+	"crypto/tls"
+	"encoding/base64"
 	"log"
 	"net"
 	"os"
+	"strings"
 
 	"github.com/kouame-florent/axone-api/api/grpc/gen"
 	"github.com/kouame-florent/axone-api/api/grpc/server"
@@ -13,10 +17,19 @@ import (
 	"github.com/kouame-florent/axone-api/internal/svc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 const (
 	port = ":50051"
+)
+
+var (
+	errMissingMetadata = status.Errorf(codes.InvalidArgument, "missing metadata")
+	errInvalidToken    = status.Errorf(codes.Unauthenticated, "invalid credentials")
 )
 
 func main() {
@@ -37,8 +50,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	buildSqlSchema() //only for test must be removed
-	StartGrpcServer()
+	buildSqlSchema() //only for test must be removed in production
+
+	opts, err := serverOptions()
+	if err != nil {
+		log.Fatal(err)
+	}
+	StartGrpcServer(opts)
 
 }
 
@@ -51,7 +69,7 @@ func buildSqlSchema() {
 	}
 }
 
-func StartGrpcServer() {
+func StartGrpcServer(opts []grpc.ServerOption) {
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -66,11 +84,45 @@ func StartGrpcServer() {
 		log.Fatal(err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(opts...)
 	gen.RegisterAxoneServer(s, axSvr)
 
 	log.Printf("Starting gRPC listener on port " + port)
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+func serverOptions() ([]grpc.ServerOption, error) {
+	cert, err := tls.LoadX509KeyPair(config.ServerCertFile, config.ServerKeyFile)
+	if err != nil {
+		return []grpc.ServerOption{}, nil
+	}
+	opts := []grpc.ServerOption{
+		grpc.Creds(credentials.NewServerTLSFromCert(&cert)),
+		grpc.UnaryInterceptor(ensureValidBasicCredentials),
+	}
+
+	return opts, nil
+}
+
+func ensureValidBasicCredentials(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler) (interface{}, error) {
+
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, errMissingMetadata
+	}
+	if !valid(md["authorization"]) {
+		return nil, errInvalidToken
+	}
+	return handler(ctx, req)
+}
+
+func valid(authorization []string) bool {
+	if len(authorization) < 1 {
+		return false
+	}
+	token := strings.TrimPrefix(authorization[0], "Basic ")
+	return token == base64.StdEncoding.EncodeToString([]byte("homer:homer"))
 }

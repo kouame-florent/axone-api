@@ -6,4 +6,4 @@ go generate generator/*
 AXONE_ENV=debug go test -v internal/svc/*
 
 #run main
-AXONE_ENV=debug go run cmd/main.go
+AXONE_ENV=debug CERTS_DIR=~/.axone-api go run cmd/main.go
