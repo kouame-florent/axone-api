@@ -30,7 +30,10 @@ func TestMain(m *testing.M) {
 	}
 
 	dsn = config.DataSourceName()
-	db = store.OpenDB(dsn)
+	db, err := store.OpenDB(dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if err := store.CreateSchema(db); err != nil {
 		log.Fatal(err)

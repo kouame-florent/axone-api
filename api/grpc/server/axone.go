@@ -19,14 +19,15 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 )
 
 const maxAttchmentSize = 20 << 20 //1 Mi
 
 type AxoneServer struct {
 	gen.UnimplementedAxoneServer
-	TicketSvc   *svc.TicketSvc
 	subscribers sync.Map
+	DB          *gorm.DB
 }
 
 type sub struct {
@@ -34,9 +35,9 @@ type sub struct {
 	finished chan<- bool               // finished is used to signal closure of a client subscribing goroutine
 }
 
-func NewAxoneServer(svc *svc.TicketSvc) *AxoneServer {
+func NewAxoneServer(db *gorm.DB) *AxoneServer {
 	server := &AxoneServer{
-		TicketSvc: svc,
+		DB: db,
 	}
 
 	return server
@@ -53,7 +54,11 @@ func (s *AxoneServer) SendNewTicket(ctx context.Context, req *gen.NewTicketReque
 		return &gen.NewTicketResponse{}, err
 	}
 
-	id, err := s.TicketSvc.SendNewTicket(ticketID, req.Subject, req.Request, axone.TicketType(req.Type), requesterID)
+	//db := store.NewDB()
+	rep := repo.NewTicketRepo(s.DB)
+	ticketSvc := svc.NewTicketSvc(rep)
+
+	id, err := ticketSvc.SendNewTicket(ticketID, req.Subject, req.Request, axone.TicketType(req.Type), requesterID)
 	if err != nil {
 		return &gen.NewTicketResponse{}, err
 	}
@@ -114,8 +119,8 @@ func (s *AxoneServer) SendAttachment(stream gen.Axone_SendAttachmentServer) erro
 
 	}
 
-	db := store.NewDB()
-	rep := repo.NewAttachmentRepo(db)
+	//db := store.NewDB()
+	rep := repo.NewAttachmentRepo(s.DB)
 	attSvc := svc.NewAttachmentSvc(rep)
 
 	storageName := uuid.New()
@@ -151,8 +156,8 @@ func (s *AxoneServer) SendAttachment(stream gen.Axone_SendAttachmentServer) erro
 func (s *AxoneServer) ListAgentTickets(ctx context.Context,
 	req *gen.AgentTicketsListRequest) (*gen.AgentTicketsListResponse, error) {
 
-	db := store.NewDB()
-	rep := repo.NewTicketRepo(db)
+	//db := store.NewDB()
+	rep := repo.NewTicketRepo(s.DB)
 	ticketSvc := svc.NewTicketSvc(rep)
 
 	ticketViews := ticketSvc.ListAgentTickets(req.Status)
@@ -262,4 +267,38 @@ func (s *AxoneServer) Login(ctx context.Context, req *gen.LoginRequest) (*gen.Lo
 		AuthToken: "homer;homer",
 		RoleToken: "requester",
 	}, nil
+}
+
+func (s *AxoneServer) ListRequesterTickets(ctx context.Context,
+	req *gen.ListRequesterTicketsRequest) (*gen.ListRequesterTicketsResponse, error) {
+
+	//db := store.NewDB()
+	rep := repo.NewTicketRepo(s.DB)
+	ticketSvc := svc.NewTicketSvc(rep)
+
+	ticketViews := ticketSvc.ListRequesterTickets(req.TicketStatus, req.RequesterID)
+	ticketsListResp := &gen.ListRequesterTicketsResponse{}
+
+	for _, t := range ticketViews {
+		ticket := &gen.Ticket{
+			Subject:           t.Subject,
+			Request:           t.Request,
+			Answer:            t.Answer,
+			RequesterID:       t.RequesterID.String(),
+			Status:            string(t.Status),
+			Type:              string(t.TicketType),
+			Priority:          string(t.Priority),
+			Rate:              uint32(t.Rate),
+			RequesterLogin:    t.Login,
+			RequesterEmail:    t.Email,
+			RequesterFullName: t.FirstName + " " + t.LastName,
+			CreatedAt:         uint64(t.CreatedAt.Unix()),
+		}
+
+		ticketsListResp.Tickets = append(ticketsListResp.Tickets, ticket)
+
+	}
+
+	return ticketsListResp, nil
+
 }

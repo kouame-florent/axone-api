@@ -18,16 +18,24 @@ type User struct {
 	Model
 	FirstName      string    `gorm:"type:varchar(100)"`
 	LastName       string    `gorm:"type:varchar(100)"`
-	Email          string    `gorm:"type:varchar(100)"`
+	Email          string    `gorm:"type:varchar(100);unique"`
 	PhoneNumber    string    `gorm:"type:varchar(100)"`
-	Login          string    `gorm:"type:varchar(100)"`
+	Login          string    `gorm:"type:varchar(100);unique"`
 	Password       string    `gorm:"type:varchar(100)"`
 	OrganizationID uuid.UUID `gorm:"type:varchar(36)"`
 	Requesters     []Requester
 	Administrators []Administrator
 	Agents         []Agent
 	Roles          []*Role `gorm:"many2many:user_roles;"`
+	Status         UserStatus
 }
+
+type UserStatus string
+
+const (
+	USER_STATUS_ENABLED  UserStatus = "ENABLED"
+	USER_STATUS_DISABLED UserStatus = "DISABLED"
+)
 
 type Role struct {
 	Model
@@ -65,6 +73,9 @@ const (
 type Administrator struct {
 	UserID uuid.UUID `gorm:"type:varchar(36)"`
 }
+
+//Notif *fyne.Notification
+//Notif *fyne.Notification
 
 type Organization struct {
 	Model
@@ -184,4 +195,18 @@ type Knowledge struct {
 	Model
 	Problem  string `gorm:"type:varchar(1000)"`
 	Solution string `gorm:"type:varchar(1000)"`
+}
+
+type Credential struct {
+	Login    string
+	Password string
+}
+
+type UserProfil struct {
+	UserID    string
+	Login     string
+	Password  string
+	Email     string
+	FirstName string
+	LastName  string
 }

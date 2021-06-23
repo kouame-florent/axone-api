@@ -61,6 +61,7 @@ func (s *FakeSvc) CreateFakeRequesterUser(organizationID uuid.UUID) (uuid.UUID, 
 		PhoneNumber:    "225-05-05-45-78-65",
 		Login:          "homer",
 		Password:       "homer",
+		Status:         axone.USER_STATUS_ENABLED,
 		OrganizationID: organizationID,
 	}
 
@@ -91,6 +92,7 @@ func (s *FakeSvc) CreateFakeLevelOneAgentUser(organizationID uuid.UUID) (uuid.UU
 		PhoneNumber:    "225-04-04-44-78-65",
 		Login:          "lisa",
 		Password:       "lisa",
+		Status:         axone.USER_STATUS_ENABLED,
 		OrganizationID: organizationID,
 	}
 

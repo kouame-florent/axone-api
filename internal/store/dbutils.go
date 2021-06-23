@@ -10,14 +10,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func OpenDB(dsn string) *gorm.DB {
+func OpenDB(dsn string) (*gorm.DB, error) {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		zap.L().Error("failed to open db", zap.Any("error", err))
-		//log.Fatal(err)
+		return &gorm.DB{}, err
 	}
 
-	return db
+	return db, nil
 }
 
 func CreateSchema(db *gorm.DB) error {
@@ -36,7 +36,16 @@ func CloseDB(db *gorm.DB) {
 	sqlDB.Close()
 }
 
-func NewDB() *gorm.DB {
+func NewDB() (*gorm.DB, error) {
 	dsn := config.DataSourceName()
 	return OpenDB(dsn)
 }
+
+/*
+func buildSqlSchema(db *gorm.DB) {
+	err := store.CreateSchema(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+*/
