@@ -263,10 +263,22 @@ func (s *AxoneServer) SendNotification(msg string) {
 }
 
 func (s *AxoneServer) Login(ctx context.Context, req *gen.LoginRequest) (*gen.LoginResponse, error) {
-	return &gen.LoginResponse{
-		AuthToken: "homer;homer",
-		RoleToken: "requester",
-	}, nil
+
+	profile, err := s.authenticate(axone.Credential{Login: req.Login, Password: req.Password})
+	if err != nil {
+		return &gen.LoginResponse{}, err
+	}
+
+	lr := &gen.LoginResponse{
+		UserID:    profile.UserID,
+		Login:     profile.Login,
+		Password:  profile.Password,
+		Email:     profile.Email,
+		FirstName: profile.FirstName,
+		LastName:  profile.LastName,
+	}
+
+	return lr, err
 }
 
 func (s *AxoneServer) ListRequesterTickets(ctx context.Context,

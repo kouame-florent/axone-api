@@ -90,9 +90,13 @@ message LoginRequest {
 }
 
 message LoginResponse {
-    string authToken = 1;
-    string roleToken = 2;
-    string userID    = 3;
+    string userID    = 1;  
+	string login     = 2;
+	string password  = 3;
+	string email     = 4;
+	string firstName = 5;
+	string lastName  = 6;
+
 }
 
 message ListRequesterTicketsRequest {

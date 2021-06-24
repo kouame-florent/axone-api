@@ -39,10 +39,12 @@ func main() {
 
 	//buildSqlSchema(db)
 
-	opts, err := server.ServerOptions()
+	axoneServer := server.NewAxoneServer(db)
+
+	opts, err := axoneServer.ServerOptions()
 	if err != nil {
 		log.Fatal(err)
 	}
-	server.StartGrpcServer(opts, db)
+	axoneServer.StartGrpcServer(opts, db)
 
 }

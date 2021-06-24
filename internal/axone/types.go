@@ -202,7 +202,7 @@ type Credential struct {
 	Password string
 }
 
-type UserProfil struct {
+type UserProfile struct {
 	UserID    string
 	Login     string
 	Password  string
