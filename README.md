@@ -1,1 +1,1 @@
-# axone-api help desk application with grpc and fyne ui library
+# axone-api help desk application api based on grpc
