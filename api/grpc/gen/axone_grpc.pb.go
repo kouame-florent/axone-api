@@ -21,7 +21,7 @@ type AxoneClient interface {
 	SendNewTicket(ctx context.Context, in *NewTicketRequest, opts ...grpc.CallOption) (*NewTicketResponse, error)
 	SendAttachment(ctx context.Context, opts ...grpc.CallOption) (Axone_SendAttachmentClient, error)
 	ListRequesterTickets(ctx context.Context, in *ListRequesterTicketsRequest, opts ...grpc.CallOption) (*ListRequesterTicketsResponse, error)
-	ListAgentTickets(ctx context.Context, in *AgentTicketsListRequest, opts ...grpc.CallOption) (*AgentTicketsListResponse, error)
+	ListAgentTickets(ctx context.Context, in *ListAgentTicketsRequest, opts ...grpc.CallOption) (*ListAgentTicketsResponse, error)
 	Subscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (Axone_SubscribeClient, error)
 	Unsubscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (*NotificationResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
@@ -54,8 +54,8 @@ func (c *axoneClient) SendAttachment(ctx context.Context, opts ...grpc.CallOptio
 }
 
 type Axone_SendAttachmentClient interface {
-	Send(*AttachmentRequest) error
-	CloseAndRecv() (*AttachmentResponse, error)
+	Send(*SendAttachmentRequest) error
+	CloseAndRecv() (*SendAttachmentResponse, error)
 	grpc.ClientStream
 }
 
@@ -63,15 +63,15 @@ type axoneSendAttachmentClient struct {
 	grpc.ClientStream
 }
 
-func (x *axoneSendAttachmentClient) Send(m *AttachmentRequest) error {
+func (x *axoneSendAttachmentClient) Send(m *SendAttachmentRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *axoneSendAttachmentClient) CloseAndRecv() (*AttachmentResponse, error) {
+func (x *axoneSendAttachmentClient) CloseAndRecv() (*SendAttachmentResponse, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
-	m := new(AttachmentResponse)
+	m := new(SendAttachmentResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -87,8 +87,8 @@ func (c *axoneClient) ListRequesterTickets(ctx context.Context, in *ListRequeste
 	return out, nil
 }
 
-func (c *axoneClient) ListAgentTickets(ctx context.Context, in *AgentTicketsListRequest, opts ...grpc.CallOption) (*AgentTicketsListResponse, error) {
-	out := new(AgentTicketsListResponse)
+func (c *axoneClient) ListAgentTickets(ctx context.Context, in *ListAgentTicketsRequest, opts ...grpc.CallOption) (*ListAgentTicketsResponse, error) {
+	out := new(ListAgentTicketsResponse)
 	err := c.cc.Invoke(ctx, "/api.Axone/ListAgentTickets", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ type AxoneServer interface {
 	SendNewTicket(context.Context, *NewTicketRequest) (*NewTicketResponse, error)
 	SendAttachment(Axone_SendAttachmentServer) error
 	ListRequesterTickets(context.Context, *ListRequesterTicketsRequest) (*ListRequesterTicketsResponse, error)
-	ListAgentTickets(context.Context, *AgentTicketsListRequest) (*AgentTicketsListResponse, error)
+	ListAgentTickets(context.Context, *ListAgentTicketsRequest) (*ListAgentTicketsResponse, error)
 	Subscribe(*NotificationRequest, Axone_SubscribeServer) error
 	Unsubscribe(context.Context, *NotificationRequest) (*NotificationResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
@@ -173,7 +173,7 @@ func (UnimplementedAxoneServer) SendAttachment(Axone_SendAttachmentServer) error
 func (UnimplementedAxoneServer) ListRequesterTickets(context.Context, *ListRequesterTicketsRequest) (*ListRequesterTicketsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRequesterTickets not implemented")
 }
-func (UnimplementedAxoneServer) ListAgentTickets(context.Context, *AgentTicketsListRequest) (*AgentTicketsListResponse, error) {
+func (UnimplementedAxoneServer) ListAgentTickets(context.Context, *ListAgentTicketsRequest) (*ListAgentTicketsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAgentTickets not implemented")
 }
 func (UnimplementedAxoneServer) Subscribe(*NotificationRequest, Axone_SubscribeServer) error {
@@ -221,8 +221,8 @@ func _Axone_SendAttachment_Handler(srv interface{}, stream grpc.ServerStream) er
 }
 
 type Axone_SendAttachmentServer interface {
-	SendAndClose(*AttachmentResponse) error
-	Recv() (*AttachmentRequest, error)
+	SendAndClose(*SendAttachmentResponse) error
+	Recv() (*SendAttachmentRequest, error)
 	grpc.ServerStream
 }
 
@@ -230,12 +230,12 @@ type axoneSendAttachmentServer struct {
 	grpc.ServerStream
 }
 
-func (x *axoneSendAttachmentServer) SendAndClose(m *AttachmentResponse) error {
+func (x *axoneSendAttachmentServer) SendAndClose(m *SendAttachmentResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *axoneSendAttachmentServer) Recv() (*AttachmentRequest, error) {
-	m := new(AttachmentRequest)
+func (x *axoneSendAttachmentServer) Recv() (*SendAttachmentRequest, error) {
+	m := new(SendAttachmentRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -261,7 +261,7 @@ func _Axone_ListRequesterTickets_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _Axone_ListAgentTickets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AgentTicketsListRequest)
+	in := new(ListAgentTicketsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func _Axone_ListAgentTickets_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/api.Axone/ListAgentTickets",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AxoneServer).ListAgentTickets(ctx, req.(*AgentTicketsListRequest))
+		return srv.(AxoneServer).ListAgentTickets(ctx, req.(*ListAgentTicketsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

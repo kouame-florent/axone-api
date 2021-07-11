@@ -19,7 +19,7 @@ func NewAttachmentSvc(r *repo.AttachmentRepo) *attachmentSvc {
 	}
 }
 
-func (s *attachmentSvc) RegisterMetas(req *gen.AttachmentRequest, storgeName string) (uuid.UUID, error) {
+func (s *attachmentSvc) RegisterMetas(req *gen.SendAttachmentRequest, storgeName string) (uuid.UUID, error) {
 	meta := req.GetInfo()
 	storageName := storgeName
 	tickerID, err := uuid.Parse(meta.GetTicketID())
@@ -44,4 +44,29 @@ func (s *attachmentSvc) RegisterMetas(req *gen.AttachmentRequest, storgeName str
 	//	rep := repo.NewAttachmentRepo(db)
 	return s.Repo.Create(att)
 
+}
+
+func (s *attachmentSvc) TicketAttachment(ticketID string, kind axone.AttachmentKind) []*gen.Attachment {
+	var results []axone.Attachment
+	s.Repo.DB.Model(&axone.Attachment{}).
+		Select("id, uploaded_name, size, mime_type, storage_name, kind").
+		Where("ticket_id = ? and kind = ?", ticketID, string(kind)).Scan(&results)
+
+	return toSliceOfPointers(results)
+}
+
+func toSliceOfPointers(as []axone.Attachment) []*gen.Attachment {
+	atts := []*gen.Attachment{}
+	for _, a := range as {
+		att := &gen.Attachment{
+			Id:           a.ID.String(),
+			UploadedName: a.UploadedName,
+			Size:         a.Size,
+			MimeType:     a.MimeType,
+			StorageName:  a.StorageName,
+			Kind:         string(a.Kind),
+		}
+		atts = append(atts, att)
+	}
+	return atts
 }

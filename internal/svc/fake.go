@@ -45,7 +45,7 @@ func (s *FakeSvc) CreatefakeOrganization() (uuid.UUID, error) {
 func (s *FakeSvc) CreateFakeRequesterUser(organizationID uuid.UUID) (uuid.UUID, error) {
 
 	repo := repo.NewUserRepo(s.DB)
-	id, err := uuid.Parse("4a2bfb72-94ab-4fb2-b195-52dc1a12ffdb")
+	id, err := uuid.Parse("44535ea6-d21d-47bb-8b6e-08e49a4caf64")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func (s *FakeSvc) CreateFakeRequesterUser(organizationID uuid.UUID) (uuid.UUID, 
 func (s *FakeSvc) CreateFakeLevelOneAgentUser(organizationID uuid.UUID) (uuid.UUID, error) {
 
 	repo := repo.NewUserRepo(s.DB)
-	id, err := uuid.Parse("56a680d0-47c4-48b8-9ad5-6eff936d4d75")
+	id, err := uuid.Parse("8616e9d0-8e56-40b3-b06a-90edd318b7a1")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -19,6 +19,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 )
 
@@ -43,6 +44,7 @@ func NewAxoneServer(db *gorm.DB) *AxoneServer {
 	return server
 }
 
+//SendNewTicket send a new ticket to axone
 func (s *AxoneServer) SendNewTicket(ctx context.Context, req *gen.NewTicketRequest) (*gen.NewTicketResponse, error) {
 	log.Printf("TICKETID: %s", req.TicketID)
 	ticketID, err := uuid.Parse(req.TicketID)
@@ -73,6 +75,7 @@ func (s *AxoneServer) SendNewTicket(ctx context.Context, req *gen.NewTicketReque
 	return resp, nil
 }
 
+//SendAttachment attachment(s) with ticket ID in metadata
 func (s *AxoneServer) SendAttachment(stream gen.Axone_SendAttachmentServer) error {
 	meta, err := stream.Recv()
 	if err != nil {
@@ -139,7 +142,7 @@ func (s *AxoneServer) SendAttachment(stream gen.Axone_SendAttachmentServer) erro
 		return status.Errorf(codes.Internal, "%s", err)
 	}
 
-	res := &gen.AttachmentResponse{
+	res := &gen.SendAttachmentResponse{
 		TicketID: meta.GetInfo().TicketID,
 	}
 
@@ -154,27 +157,33 @@ func (s *AxoneServer) SendAttachment(stream gen.Axone_SendAttachmentServer) erro
 }
 
 func (s *AxoneServer) ListAgentTickets(ctx context.Context,
-	req *gen.AgentTicketsListRequest) (*gen.AgentTicketsListResponse, error) {
+	req *gen.ListAgentTicketsRequest) (*gen.ListAgentTicketsResponse, error) {
 
-	//db := store.NewDB()
 	rep := repo.NewTicketRepo(s.DB)
 	ticketSvc := svc.NewTicketSvc(rep)
 
-	ticketViews := ticketSvc.ListAgentTickets(req.Status)
-	ticketsListResp := &gen.AgentTicketsListResponse{}
+	attRep := repo.NewAttachmentRepo(s.DB)
+	attSvc := svc.NewAttachmentSvc(attRep)
+
+	ticketViews := ticketSvc.ListAgentTickets(req.TicketStatus)
+	ticketsListResp := &gen.ListAgentTicketsResponse{}
 
 	for _, t := range ticketViews {
 		ticket := &gen.Ticket{
-			Subject:           t.Subject,
-			Request:           t.Request,
-			Answer:            t.Answer,
-			RequesterID:       t.RequesterID.String(),
-			Status:            string(t.Status),
-			Type:              string(t.TicketType),
-			Priority:          string(t.Priority),
-			Rate:              uint32(t.Rate),
-			RequesterEmail:    t.Email,
-			RequesterFullName: t.FirstName + " " + t.LastName,
+			Id:                 t.ID.String(),
+			CreatedAt:          timestamppb.New(t.CreatedAt),
+			Subject:            t.Subject,
+			Request:            t.Request,
+			Answer:             t.Answer,
+			RequesterID:        t.RequesterID.String(),
+			Status:             string(t.Status),
+			Type:               string(t.TicketType),
+			Priority:           string(t.Priority),
+			Rate:               uint32(t.Rate),
+			RequesterEmail:     t.Email,
+			RequesterFullName:  t.FirstName + " " + t.LastName,
+			RequestAttachments: attSvc.TicketAttachment(t.ID.String(), axone.ATTACHMENT_KIND_REQUEST),
+			AnswerAttachments:  attSvc.TicketAttachment(t.ID.String(), axone.ATTACHMENT_KIND_ANSWER),
 		}
 
 		ticketsListResp.Tickets = append(ticketsListResp.Tickets, ticket)
@@ -184,6 +193,7 @@ func (s *AxoneServer) ListAgentTickets(ctx context.Context,
 	return ticketsListResp, nil
 }
 
+//Subscribe store stream to notify agents when a new request arrive
 func (s *AxoneServer) Subscribe(req *gen.NotificationRequest, stream gen.Axone_SubscribeServer) error {
 	fin := make(chan bool)
 	s.subscribers.Store(req.Id, sub{stream: stream, finished: fin})
@@ -222,6 +232,7 @@ func (s *AxoneServer) Unsubscribe(ctx context.Context, req *gen.NotificationRequ
 	return &gen.NotificationResponse{}, nil
 }
 
+//SendNotification notify agents when new tickets arrive
 func (s *AxoneServer) SendNotification(msg string) {
 
 	// A list of clients to unsubscribe in case of error
@@ -262,29 +273,9 @@ func (s *AxoneServer) SendNotification(msg string) {
 	}
 }
 
-func (s *AxoneServer) Login(ctx context.Context, req *gen.LoginRequest) (*gen.LoginResponse, error) {
-
-	profile, err := s.authenticate(axone.Credential{Login: req.Login, Password: req.Password})
-	if err != nil {
-		return &gen.LoginResponse{}, err
-	}
-
-	lr := &gen.LoginResponse{
-		UserID:    profile.UserID,
-		Login:     profile.Login,
-		Password:  profile.Password,
-		Email:     profile.Email,
-		FirstName: profile.FirstName,
-		LastName:  profile.LastName,
-	}
-
-	return lr, err
-}
-
 func (s *AxoneServer) ListRequesterTickets(ctx context.Context,
 	req *gen.ListRequesterTicketsRequest) (*gen.ListRequesterTicketsResponse, error) {
 
-	//db := store.NewDB()
 	rep := repo.NewTicketRepo(s.DB)
 	ticketSvc := svc.NewTicketSvc(rep)
 
@@ -304,7 +295,8 @@ func (s *AxoneServer) ListRequesterTickets(ctx context.Context,
 			RequesterLogin:    t.Login,
 			RequesterEmail:    t.Email,
 			RequesterFullName: t.FirstName + " " + t.LastName,
-			CreatedAt:         uint64(t.CreatedAt.Unix()),
+			CreatedAt:         timestamppb.New(t.CreatedAt),
+			UpdatedAt:         timestamppb.New(t.UpdatedAt),
 		}
 
 		ticketsListResp.Tickets = append(ticketsListResp.Tickets, ticket)

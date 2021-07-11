@@ -10,11 +10,10 @@ import (
 	"github.com/kouame-florent/axone-api/internal/config"
 	"github.com/kouame-florent/axone-api/internal/repo"
 	"github.com/kouame-florent/axone-api/internal/store"
-	"gorm.io/gorm"
 )
 
-var dsn string
-var db *gorm.DB
+//var dsn string
+//var db *gorm.DB
 
 func TestMain(m *testing.M) {
 
@@ -29,7 +28,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	dsn = config.DataSourceName()
+	dsn := config.DataSourceName()
 	db, err := store.OpenDB(dsn)
 	if err != nil {
 		log.Fatal(err)
@@ -39,7 +38,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	defer store.CloseDB(db)
+	//defer store.CloseDB(db)
 
 	fs := NewFakeSvc(db)
 
@@ -85,21 +84,30 @@ var agentID uuid.UUID
 
 func TestSendNewTicket(t *testing.T) {
 
-	rep := repo.NewTicketRepo(db)
-	s := NewTicketSvc(rep)
-
-	tID, err := uuid.Parse("3d13de55-6b84-43f0-8ae7-fb5a438dfaf7")
+	dsn := config.DataSourceName()
+	db, err := store.OpenDB(dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	rep := repo.NewTicketRepo(db)
+	svc := NewTicketSvc(rep)
+
+	tID := uuid.MustParse("3d13de55-6b84-43f0-8ae7-fb5a438dfaf7")
+
+	log.Printf("TicketID: %s", tID)
+	log.Printf("service: %+v", svc)
 	log.Printf("RequesterID: %s", requesterID)
-	id, err := s.SendNewTicket(tID, "Réacteur en surchauffe", "comment refroidir le réacteur en surchauffe",
+
+	id, err := svc.SendNewTicket(tID, "Réacteur en surchauffe", "&{Repo:0xc0000b6b60}&{Repo:0xc0000b6b60}mment refroidir le réacteur en surchauffe",
 		axone.TICKET_TYPE_PROBLEM, requesterID)
 	if err != nil {
 		t.Errorf("expected no errors got: %v", err)
+
 	}
+
 	if id.String() != "3d13de55-6b84-43f0-8ae7-fb5a438dfaf7" {
 		t.Errorf("expected id '3d13de55-6b84-43f0-8ae7-fb5a438dfaf7' got: %s", id.String())
 	}
+
 }

@@ -72,16 +72,16 @@ func (s *TicketSvc) ListAgentTickets(status string) []ListTicketsResult {
 	s.Repo.DB.Model(&axone.Ticket{}).
 		Select("tickets.id,tickets.created_at,tickets.updated_at,tickets.subject, tickets.request,tickets.answer,tickets.requester_id,tickets.status,tickets.ticket_type,tickets.priority,tickets.rate,users.login,users.email,users.first_name,users.last_name").
 		Joins("join requesters on requesters.user_id = tickets.requester_id").Joins("join users on requesters.user_id = users.id").
-		Where("status = ?", status).Scan(&results)
+		Where("tickets.status = ?", status).Scan(&results)
 
 	return results
 }
 
-func (s *TicketSvc) ListRequesterTickets(status, requesterID string) []ListTicketsResult {
+func (s *TicketSvc) ListRequesterTickets(ticketStatus, requesterID string) []ListTicketsResult {
 	var results []ListTicketsResult
 	s.Repo.DB.Model(&axone.Ticket{}).Select("tickets.id,tickets.created_at,tickets.updated_at,tickets.subject, tickets.request,tickets.answer,tickets.requester_id,tickets.status,tickets.ticket_type,tickets.priority,tickets.rate,users.email,users.first_name,users.last_name").
 		Joins("join requesters on requesters.user_id = tickets.requester_id").Joins("join users on requesters.user_id = users.id").
-		Where("status = ? AND requester_id = ?", status, requesterID).Scan(&results)
+		Where("tickets.status = ? AND requester_id = ?", ticketStatus, requesterID).Scan(&results)
 
 	return results
 }
