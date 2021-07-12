@@ -146,9 +146,18 @@ const (
 	ASSIGNMENT_STATUS_DISABLED AssignmentStatus = "DISABLED"
 )
 
+type TagStatus string
+
+const (
+	TAG_STATUS_PRIVATE TagStatus = "PRIVATE" //visible by agent only
+	TAG_STATUS_PUBLIC  TagStatus = "PUBLIC"
+)
+
 type Tag struct {
 	Model
-	Name    string    `gorm:"type:varchar(50)"`
+	Key     string `gorm:"type:varchar(50);uniqueIndex:key_value"`
+	Value   string `gorm:"type:varchar(50);uniqueIndex:key_value"`
+	Status  TagStatus
 	Tickets []*Ticket `gorm:"many2many:ticket_tags;"`
 }
 

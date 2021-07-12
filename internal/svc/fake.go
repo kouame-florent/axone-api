@@ -103,3 +103,63 @@ func (s *FakeSvc) CreateFakeLevelOneAgentUser(organizationID uuid.UUID) (uuid.UU
 	}
 	return id, nil
 }
+
+func (s *FakeSvc) createFakeTags() ([]uuid.UUID, error) {
+
+	repo := repo.NewTagRepo(s.DB)
+
+	tags := []axone.Tag{
+		{
+			Model: axone.Model{
+				ID:        uuid.MustParse("99fbaff3-321d-4829-86d1-70a47c6ec020"),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Key:    "service",
+			Value:  "security",
+			Status: axone.TAG_STATUS_PRIVATE,
+		},
+		{
+			Model: axone.Model{
+				ID:        uuid.MustParse("d20e955a-7491-4cd4-9e7d-c1434f4b5c43"),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Key:    "service",
+			Value:  "finance",
+			Status: axone.TAG_STATUS_PRIVATE,
+		},
+		{
+			Model: axone.Model{
+				ID:        uuid.MustParse("1b800073-263a-4ff0-ba42-d0fd0a779900"),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Key:    "developper",
+			Value:  "Bill Gates",
+			Status: axone.TAG_STATUS_PRIVATE,
+		},
+		{
+			Model: axone.Model{
+				ID:        uuid.MustParse("2083a0c7-932f-4c1c-94b8-f472b96a2855"),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Key:    "developper",
+			Value:  "Linus Torvalds",
+			Status: axone.TAG_STATUS_PRIVATE,
+		},
+	}
+
+	err := repo.DB.Create(tags).Error
+	if err != nil {
+		return []uuid.UUID{}, nil
+	}
+
+	res := []uuid.UUID{}
+	for _, t := range tags {
+		res = append(res, t.ID)
+	}
+
+	return res, nil
+}

@@ -47,6 +47,11 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
+	_, err = fs.createFakeTags()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	uID, err := fs.CreateFakeRequesterUser(orgID)
 	if err != nil {
 		log.Fatal(err)
