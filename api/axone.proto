@@ -14,6 +14,9 @@ service Axone {
 
     rpc ListAgentTickets(ListAgentTicketsRequest) returns (ListAgentTicketsResponse);
 
+    rpc ListTags(ListTagRequest) returns (ListTagResponse);
+    rpc AddTag(AddTagRequest) returns (AddTagResponse);
+
     rpc Subscribe(NotificationRequest) returns (stream NotificationResponse);
     rpc Unsubscribe(NotificationRequest) returns (NotificationResponse);
 
@@ -121,4 +124,28 @@ message ListRequesterTicketsRequest {
 
 message ListRequesterTicketsResponse {
     repeated Ticket tickets = 1;
+}
+
+message Tag {
+    string id          = 1;
+    string key         = 2;
+    string value       = 3;
+    string status      = 4;
+}
+
+message ListTagRequest {
+
+}
+
+message ListTagResponse{
+    repeated Tag tags = 1;
+}
+
+message AddTagRequest{
+    string ticketID     = 1;
+    string tagID        = 2;
+}
+
+message AddTagResponse{
+    
 }

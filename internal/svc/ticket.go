@@ -85,3 +85,34 @@ func (s *TicketSvc) ListRequesterTickets(ticketStatus, requesterID string) []Lis
 
 	return results
 }
+
+func (s *TicketSvc) AddTag(ticketID, tagID string) error {
+	tickID, err := uuid.Parse(ticketID)
+	if err != nil {
+		return err
+	}
+	ticket, err := s.Repo.Find(tickID)
+	if err != nil {
+		return err
+	}
+
+	taID, err := uuid.Parse(tagID)
+	if err != nil {
+		return err
+	}
+	tagRep := repo.NewTagRepo(s.Repo.DB)
+	tag, err := tagRep.Find(taID)
+	if err != nil {
+		return err
+	}
+
+	ticket.Tags = append(ticket.Tags, tag)
+
+	err = s.Repo.DB.Save(&ticket).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}

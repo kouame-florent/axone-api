@@ -306,3 +306,36 @@ func (s *AxoneServer) ListRequesterTickets(ctx context.Context,
 	return ticketsListResp, nil
 
 }
+
+func (s *AxoneServer) ListTags(ctx context.Context, req *gen.ListTagRequest) (*gen.ListTagResponse, error) {
+	repo := repo.NewTagRepo(s.DB)
+	tagSvc := svc.NewTagSvc(repo)
+
+	tags, err := tagSvc.ListTags()
+	if err != nil {
+		return &gen.ListTagResponse{}, err
+	}
+
+	tagsResp := &gen.ListTagResponse{}
+
+	for _, t := range tags {
+		tag := &gen.Tag{
+			Id:    t.ID.String(),
+			Key:   t.Key,
+			Value: t.Value,
+		}
+		tagsResp.Tags = append(tagsResp.Tags, tag)
+	}
+	return tagsResp, nil
+}
+
+func (s *AxoneServer) AddTag(ctx context.Context, req *gen.AddTagRequest) (*gen.AddTagResponse, error) {
+	repo := repo.NewTicketRepo(s.DB)
+	ticketSvc := svc.NewTicketSvc(repo)
+
+	err := ticketSvc.AddTag(req.TicketID, req.TagID)
+	if err != nil {
+		return &gen.AddTagResponse{}, err
+	}
+	return &gen.AddTagResponse{}, nil
+}

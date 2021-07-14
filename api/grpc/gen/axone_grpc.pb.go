@@ -22,6 +22,8 @@ type AxoneClient interface {
 	SendAttachment(ctx context.Context, opts ...grpc.CallOption) (Axone_SendAttachmentClient, error)
 	ListRequesterTickets(ctx context.Context, in *ListRequesterTicketsRequest, opts ...grpc.CallOption) (*ListRequesterTicketsResponse, error)
 	ListAgentTickets(ctx context.Context, in *ListAgentTicketsRequest, opts ...grpc.CallOption) (*ListAgentTicketsResponse, error)
+	ListTags(ctx context.Context, in *ListTagRequest, opts ...grpc.CallOption) (*ListTagResponse, error)
+	AddTag(ctx context.Context, in *AddTagRequest, opts ...grpc.CallOption) (*AddTagResponse, error)
 	Subscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (Axone_SubscribeClient, error)
 	Unsubscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (*NotificationResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
@@ -96,6 +98,24 @@ func (c *axoneClient) ListAgentTickets(ctx context.Context, in *ListAgentTickets
 	return out, nil
 }
 
+func (c *axoneClient) ListTags(ctx context.Context, in *ListTagRequest, opts ...grpc.CallOption) (*ListTagResponse, error) {
+	out := new(ListTagResponse)
+	err := c.cc.Invoke(ctx, "/api.Axone/ListTags", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *axoneClient) AddTag(ctx context.Context, in *AddTagRequest, opts ...grpc.CallOption) (*AddTagResponse, error) {
+	out := new(AddTagResponse)
+	err := c.cc.Invoke(ctx, "/api.Axone/AddTag", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *axoneClient) Subscribe(ctx context.Context, in *NotificationRequest, opts ...grpc.CallOption) (Axone_SubscribeClient, error) {
 	stream, err := c.cc.NewStream(ctx, &Axone_ServiceDesc.Streams[1], "/api.Axone/Subscribe", opts...)
 	if err != nil {
@@ -154,6 +174,8 @@ type AxoneServer interface {
 	SendAttachment(Axone_SendAttachmentServer) error
 	ListRequesterTickets(context.Context, *ListRequesterTicketsRequest) (*ListRequesterTicketsResponse, error)
 	ListAgentTickets(context.Context, *ListAgentTicketsRequest) (*ListAgentTicketsResponse, error)
+	ListTags(context.Context, *ListTagRequest) (*ListTagResponse, error)
+	AddTag(context.Context, *AddTagRequest) (*AddTagResponse, error)
 	Subscribe(*NotificationRequest, Axone_SubscribeServer) error
 	Unsubscribe(context.Context, *NotificationRequest) (*NotificationResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
@@ -175,6 +197,12 @@ func (UnimplementedAxoneServer) ListRequesterTickets(context.Context, *ListReque
 }
 func (UnimplementedAxoneServer) ListAgentTickets(context.Context, *ListAgentTicketsRequest) (*ListAgentTicketsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAgentTickets not implemented")
+}
+func (UnimplementedAxoneServer) ListTags(context.Context, *ListTagRequest) (*ListTagResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTags not implemented")
+}
+func (UnimplementedAxoneServer) AddTag(context.Context, *AddTagRequest) (*AddTagResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddTag not implemented")
 }
 func (UnimplementedAxoneServer) Subscribe(*NotificationRequest, Axone_SubscribeServer) error {
 	return status.Errorf(codes.Unimplemented, "method Subscribe not implemented")
@@ -278,6 +306,42 @@ func _Axone_ListAgentTickets_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Axone_ListTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTagRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AxoneServer).ListTags(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Axone/ListTags",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AxoneServer).ListTags(ctx, req.(*ListTagRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Axone_AddTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddTagRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AxoneServer).AddTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.Axone/AddTag",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AxoneServer).AddTag(ctx, req.(*AddTagRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Axone_Subscribe_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(NotificationRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -353,6 +417,14 @@ var Axone_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAgentTickets",
 			Handler:    _Axone_ListAgentTickets_Handler,
+		},
+		{
+			MethodName: "ListTags",
+			Handler:    _Axone_ListTags_Handler,
+		},
+		{
+			MethodName: "AddTag",
+			Handler:    _Axone_AddTag_Handler,
 		},
 		{
 			MethodName: "Unsubscribe",
