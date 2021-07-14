@@ -161,6 +161,11 @@ type Tag struct {
 	Tickets []*Ticket `gorm:"many2many:ticket_tags;"`
 }
 
+type TicketTags struct {
+	TicketID string
+	TagID    string
+}
+
 type Comment struct {
 	Model
 	Text     string          `gorm:"type:varchar(300)"`

@@ -91,26 +91,44 @@ func (s *TicketSvc) AddTag(ticketID, tagID string) error {
 	if err != nil {
 		return err
 	}
-	ticket, err := s.Repo.Find(tickID)
-	if err != nil {
-		return err
-	}
 
 	taID, err := uuid.Parse(tagID)
 	if err != nil {
 		return err
 	}
+
+	ticketTagsSvc := NewTicketTagsSvc(s.Repo.DB)
+
 	tagRep := repo.NewTagRepo(s.Repo.DB)
 	tag, err := tagRep.Find(taID)
 	if err != nil {
 		return err
 	}
 
-	ticket.Tags = append(ticket.Tags, tag)
-
-	err = s.Repo.DB.Save(&ticket).Error
+	ticket, err := s.Repo.Find(tickID)
 	if err != nil {
 		return err
+	}
+
+	ok, err := ticketTagsSvc.Exist(ticketID, tagID)
+	if err != nil {
+		return err
+	}
+
+	if !ok {
+
+		ticket.Tags = append(ticket.Tags, tag)
+
+		err = s.Repo.DB.Save(&ticket).Error
+		if err != nil {
+			return err
+		}
+
+	} else {
+		err = ticketTagsSvc.Remove(ticket, tag)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
