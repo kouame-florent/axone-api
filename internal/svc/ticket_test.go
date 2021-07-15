@@ -104,7 +104,7 @@ func TestSendNewTicket(t *testing.T) {
 	log.Printf("service: %+v", svc)
 	log.Printf("RequesterID: %s", requesterID)
 
-	id, err := svc.SendNewTicket(tID, "Réacteur en surchauffe", "&{Repo:0xc0000b6b60}&{Repo:0xc0000b6b60}mment refroidir le réacteur en surchauffe",
+	id, err := svc.SendNewTicket(tID, "Réacteur en surchauffe", "comment refroidir le réacteur en surchauffe",
 		axone.TICKET_TYPE_PROBLEM, requesterID)
 	if err != nil {
 		t.Errorf("expected no errors got: %v", err)

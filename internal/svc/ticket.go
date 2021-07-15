@@ -42,12 +42,6 @@ func (s *TicketSvc) SendNewTicket(ticketID uuid.UUID, subject, request string, t
 
 }
 
-/*
-func (s *TicketSvc) SendAttachment() (uuid.UUID, error) {
-	return uuid.UUID{}, nil
-}
-*/
-
 type ListTicketsResult struct {
 	ID          uuid.UUID
 	CreatedAt   time.Time
@@ -87,7 +81,8 @@ func (s *TicketSvc) ListRequesterTickets(ticketStatus, requesterID string) []Lis
 }
 
 func (s *TicketSvc) AddTag(ticketID, tagID string) error {
-	tickID, err := uuid.Parse(ticketID)
+
+	ticketUUID, err := uuid.Parse(ticketID)
 	if err != nil {
 		return err
 	}
@@ -105,7 +100,7 @@ func (s *TicketSvc) AddTag(ticketID, tagID string) error {
 		return err
 	}
 
-	ticket, err := s.Repo.Find(tickID)
+	ticket, err := s.Repo.Find(ticketUUID)
 	if err != nil {
 		return err
 	}

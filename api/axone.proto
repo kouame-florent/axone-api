@@ -137,13 +137,14 @@ message ListTagRequest {
 
 }
 
-message ListTagResponse{
+message ListTagResponse {
     repeated Tag tags = 1;
 }
 
+
 message AddTagRequest{
-    string ticketID     = 1;
-    string tagID        = 2;
+    string ticketID         = 1;
+    string tagID            = 2;
 }
 
 message AddTagResponse{

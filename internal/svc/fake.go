@@ -149,6 +149,26 @@ func (s *FakeSvc) createFakeTags() ([]uuid.UUID, error) {
 			Value:  "Linus Torvalds",
 			Status: axone.TAG_STATUS_PRIVATE,
 		},
+		{
+			Model: axone.Model{
+				ID:        uuid.MustParse("058a6fe7-fe2c-4661-bbfa-9f1b0ea83481"),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Key:    "tester",
+			Value:  "Rob Pike",
+			Status: axone.TAG_STATUS_PRIVATE,
+		},
+		{
+			Model: axone.Model{
+				ID:        uuid.MustParse("4fffb491-7f6c-45a3-bbd5-1298d58ce16c"),
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Key:    "tester",
+			Value:  "Bill Joy",
+			Status: axone.TAG_STATUS_PRIVATE,
+		},
 	}
 
 	err := repo.DB.Create(tags).Error
