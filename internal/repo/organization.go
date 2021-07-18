@@ -1,6 +1,6 @@
-
 package repo
 
+/*
 import (
 
 	"github.com/google/uuid"
@@ -32,7 +32,7 @@ func (r *OrganizationRepo) Find(id uuid.UUID) (*axone.Organization, error) {
 	if tx.Error != nil {
 		return &axone.Organization{}, tx.Error
 	}
-	
+
 	return e, nil
 }
 
@@ -61,3 +61,4 @@ func (r *OrganizationRepo) Delete(l *axone.Organization) error {
 	return nil
 }
 
+*/

@@ -21,6 +21,8 @@ service Axone {
     rpc Unsubscribe(NotificationRequest) returns (NotificationResponse);
 
     rpc Login(LoginRequest) returns (LoginResponse);
+
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 }
 
 message SendAttachmentRequest {
@@ -150,3 +152,22 @@ message AddTagRequest{
 message AddTagResponse{
     
 }
+
+
+message CreateUserRequest {
+    string firstName        = 1;
+    string lastName         = 2;
+	string email            = 3;      
+	string phoneNumber      = 4;
+	string login            = 5;
+	string password         = 6;
+	string status           = 7;
+	string organizationID   = 8;
+    string kind             = 9;
+    string agentLevel       = 10; 
+    string agentBio         = 11;
+}
+
+message CreateUserResponse {
+    string userID   = 1;
+} 

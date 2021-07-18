@@ -25,7 +25,7 @@ func OpenDB(dsn string) (*gorm.DB, error) {
 
 func CreateSchema(db *gorm.DB) error {
 	log.Println("migrating db ...")
-	err := db.AutoMigrate(&axone.Organization{}, &axone.User{}, &axone.Role{}, &axone.Requester{}, &axone.Agent{},
+	err := db.AutoMigrate(&axone.User{}, &axone.Role{}, &axone.Requester{}, &axone.Agent{},
 		&axone.Administrator{}, &axone.Ticket{}, &axone.Tag{}, &axone.Attachment{},
 		&axone.Comment{}, &axone.Assignment{}, &axone.Knowledge{})
 	return err

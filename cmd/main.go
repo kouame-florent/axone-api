@@ -6,7 +6,9 @@ import (
 
 	"github.com/kouame-florent/axone-api/api/grpc/server"
 	"github.com/kouame-florent/axone-api/internal/config"
+	"github.com/kouame-florent/axone-api/internal/repo"
 	"github.com/kouame-florent/axone-api/internal/store"
+	"github.com/kouame-florent/axone-api/internal/svc"
 	"go.uber.org/zap"
 )
 
@@ -37,7 +39,10 @@ func main() {
 
 	store.CreateSchema(db) //only for test must be removed in production
 
-	//buildSqlSchema(db)
+	//initialize default datas
+	roleRepo := repo.NewRoleRepo(db)
+	initSvc := svc.NewInitialization(roleRepo)
+	initSvc.CreateDefaultRoles()
 
 	axoneServer := server.NewAxoneServer(db)
 

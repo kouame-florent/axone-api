@@ -20,6 +20,7 @@ func NewFakeSvc(db *gorm.DB) *FakeSvc {
 	}
 }
 
+/*
 func (s *FakeSvc) CreatefakeOrganization() (uuid.UUID, error) {
 
 	repo := repo.NewOrganizationRepo(s.DB)
@@ -41,8 +42,9 @@ func (s *FakeSvc) CreatefakeOrganization() (uuid.UUID, error) {
 	}
 	return id, nil
 }
+*/
 
-func (s *FakeSvc) CreateFakeRequesterUser(organizationID uuid.UUID) (uuid.UUID, error) {
+func (s *FakeSvc) CreateFakeRequesterUser() (uuid.UUID, error) {
 
 	repo := repo.NewUserRepo(s.DB)
 	id, err := uuid.Parse("44535ea6-d21d-47bb-8b6e-08e49a4caf64")
@@ -55,14 +57,14 @@ func (s *FakeSvc) CreateFakeRequesterUser(organizationID uuid.UUID) (uuid.UUID, 
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
-		FirstName:      "Homer",
-		LastName:       "Simpson",
-		Email:          "homer.simpson@gmail.com",
-		PhoneNumber:    "225-05-05-45-78-65",
-		Login:          "homer",
-		Password:       "homer",
-		Status:         axone.USER_STATUS_ENABLED,
-		OrganizationID: organizationID,
+		FirstName:   "Homer",
+		LastName:    "Simpson",
+		Email:       "homer.simpson@gmail.com",
+		PhoneNumber: "225-05-05-45-78-65",
+		Login:       "homer",
+		Password:    "homer",
+		Status:      axone.USER_STATUS_ENABLED,
+		//OrganizationID: organizationID,
 	}
 
 	err = repo.DB.Create(u).Error
@@ -73,7 +75,7 @@ func (s *FakeSvc) CreateFakeRequesterUser(organizationID uuid.UUID) (uuid.UUID, 
 	return id, nil
 }
 
-func (s *FakeSvc) CreateFakeLevelOneAgentUser(organizationID uuid.UUID) (uuid.UUID, error) {
+func (s *FakeSvc) CreateFakeLevelOneAgentUser() (uuid.UUID, error) {
 
 	repo := repo.NewUserRepo(s.DB)
 	id, err := uuid.Parse("8616e9d0-8e56-40b3-b06a-90edd318b7a1")
@@ -86,14 +88,14 @@ func (s *FakeSvc) CreateFakeLevelOneAgentUser(organizationID uuid.UUID) (uuid.UU
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
-		FirstName:      "Lisa",
-		LastName:       "Simpson",
-		Email:          "lisa.simpson@gmail.com",
-		PhoneNumber:    "225-04-04-44-78-65",
-		Login:          "lisa",
-		Password:       "lisa",
-		Status:         axone.USER_STATUS_ENABLED,
-		OrganizationID: organizationID,
+		FirstName:   "Lisa",
+		LastName:    "Simpson",
+		Email:       "lisa.simpson@gmail.com",
+		PhoneNumber: "225-04-04-44-78-65",
+		Login:       "lisa",
+		Password:    "lisa",
+		Status:      axone.USER_STATUS_ENABLED,
+		//OrganizationID: organizationID,
 	}
 
 	err = repo.DB.Create(u).Error
@@ -116,7 +118,7 @@ func (s *FakeSvc) createFakeTags() ([]uuid.UUID, error) {
 				UpdatedAt: time.Now(),
 			},
 			Key:    "service",
-			Value:  "security",
+			Value:  "informatique",
 			Status: axone.TAG_STATUS_PRIVATE,
 		},
 		{
@@ -135,8 +137,8 @@ func (s *FakeSvc) createFakeTags() ([]uuid.UUID, error) {
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
-			Key:    "developper",
-			Value:  "Bill Gates",
+			Key:    "role",
+			Value:  "développeur",
 			Status: axone.TAG_STATUS_PRIVATE,
 		},
 		{
@@ -145,8 +147,8 @@ func (s *FakeSvc) createFakeTags() ([]uuid.UUID, error) {
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
-			Key:    "developper",
-			Value:  "Linus Torvalds",
+			Key:    "role",
+			Value:  "étude",
 			Status: axone.TAG_STATUS_PRIVATE,
 		},
 		{
@@ -155,8 +157,8 @@ func (s *FakeSvc) createFakeTags() ([]uuid.UUID, error) {
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
-			Key:    "tester",
-			Value:  "Rob Pike",
+			Key:    "role",
+			Value:  "testeur",
 			Status: axone.TAG_STATUS_PRIVATE,
 		},
 		{
@@ -165,8 +167,8 @@ func (s *FakeSvc) createFakeTags() ([]uuid.UUID, error) {
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
-			Key:    "tester",
-			Value:  "Bill Joy",
+			Key:    "role",
+			Value:  "dba",
 			Status: axone.TAG_STATUS_PRIVATE,
 		},
 	}

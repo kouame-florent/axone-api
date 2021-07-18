@@ -42,17 +42,19 @@ func TestMain(m *testing.M) {
 
 	fs := NewFakeSvc(db)
 
-	orgID, err := fs.CreatefakeOrganization()
-	if err != nil {
-		log.Fatal(err)
-	}
+	/*
+		orgID, err := fs.CreatefakeOrganization()
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
 
 	_, err = fs.createFakeTags()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	uID, err := fs.CreateFakeRequesterUser(orgID)
+	uID, err := fs.CreateFakeRequesterUser()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +67,7 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	auid, err := fs.CreateFakeLevelOneAgentUser(orgID)
+	auid, err := fs.CreateFakeLevelOneAgentUser()
 	if err != nil {
 		log.Fatal(err)
 	}

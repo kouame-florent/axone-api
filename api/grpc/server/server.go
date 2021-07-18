@@ -339,3 +339,65 @@ func (s *AxoneServer) AddTag(ctx context.Context, req *gen.AddTagRequest) (*gen.
 	}
 	return &gen.AddTagResponse{}, nil
 }
+
+func (s *AxoneServer) CreateUser(ctx context.Context, req *gen.CreateUserRequest) (*gen.CreateUserResponse, error) {
+	userRepo := repo.NewUserRepo(s.DB)
+	userSvc := svc.NewUserSvc(userRepo)
+
+	agentRepo := repo.NewAgentRepo(s.DB)
+	agentSvc := svc.NewAgentSvc(agentRepo)
+
+	requesterRepo := repo.NewRequesterRepo(s.DB)
+	requesterSvc := svc.NewRequesterSvc(requesterRepo)
+
+	adminRepo := repo.NewAdministratorRepo(s.DB)
+	adminSvc := svc.NewAdministratorSvc(adminRepo)
+
+	/*
+		orgID, err := uuid.Parse(req.OrganizationID)
+		if err != nil {
+			return &gen.CreateUserResponse{}, err
+		}
+	*/
+
+	user := &axone.User{
+		Model: axone.Model{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Email:       req.Email,
+		PhoneNumber: req.PhoneNumber,
+		Login:       req.Login,
+		Password:    req.Password,
+		//OrganizationID: orgID,
+	}
+
+	id, err := userSvc.CreateUser(user)
+	if err != nil {
+		return &gen.CreateUserResponse{}, err
+	}
+
+	switch req.Kind {
+	case string(axone.USER_KIND_AGENT):
+		_, err = agentSvc.CreateAgent(id, axone.AgentLevel(req.AgentLevel), req.AgentBio)
+		if err != nil {
+			return &gen.CreateUserResponse{}, err
+		}
+
+	case string(axone.USER_KIND_ADMINISTRATOR):
+		_, err := adminSvc.CreateAdministrator(id)
+		if err != nil {
+			return &gen.CreateUserResponse{}, err
+		}
+	case string(axone.USER_KIND_REQUESTER):
+		_, err := requesterSvc.CreateRequester(id)
+		if err != nil {
+			return &gen.CreateUserResponse{}, err
+		}
+	}
+
+	return &gen.CreateUserResponse{}, nil
+}

@@ -3,6 +3,7 @@ package svc
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/kouame-florent/axone-api/internal/axone"
 	"github.com/kouame-florent/axone-api/internal/repo"
 	"gorm.io/gorm"
@@ -46,4 +47,9 @@ func (u *UserSvc) Validate(cred axone.Credential, status axone.UserStatus) error
 		return tx.Error
 	}
 	return nil
+}
+
+func (u *UserSvc) CreateUser(user *axone.User) (uuid.UUID, error) {
+	return u.Repo.Create(user)
+
 }

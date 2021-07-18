@@ -16,18 +16,19 @@ type Model struct {
 
 type User struct {
 	Model
-	FirstName      string    `gorm:"type:varchar(100)"`
-	LastName       string    `gorm:"type:varchar(100)"`
-	Email          string    `gorm:"type:varchar(100);unique"`
-	PhoneNumber    string    `gorm:"type:varchar(100)"`
-	Login          string    `gorm:"type:varchar(100);unique"`
-	Password       string    `gorm:"type:varchar(100)"`
-	OrganizationID uuid.UUID `gorm:"type:varchar(36)"`
+	FirstName   string `gorm:"type:varchar(100)"`
+	LastName    string `gorm:"type:varchar(100)"`
+	Email       string `gorm:"type:varchar(100);unique"`
+	PhoneNumber string `gorm:"type:varchar(100)"`
+	Login       string `gorm:"type:varchar(100);unique"`
+	Password    string `gorm:"type:varchar(100)"`
+	//OrganizationID uuid.UUID `gorm:"type:varchar(36)"`
 	Requesters     []Requester
 	Administrators []Administrator
 	Agents         []Agent
 	Roles          []*Role `gorm:"many2many:user_roles;"`
 	Status         UserStatus
+	Tags           []*Tag `gorm:"many2many:user_tags;"`
 }
 
 type UserStatus string
@@ -39,8 +40,8 @@ const (
 
 type Role struct {
 	Model
-	Value RoleValue
-	Users []*User `gorm:"many2many:user_roles;"`
+	Value RoleValue `gorm:"unique"`
+	Users []*User   `gorm:"many2many:user_roles;"`
 }
 
 type RoleValue string
@@ -52,12 +53,12 @@ const (
 )
 
 type Requester struct {
-	UserID  uuid.UUID `gorm:"type:varchar(36)"`
+	UserID  uuid.UUID `gorm:"type:varchar(36);primaryKey"`
 	Tickets []Ticket  `gorm:"foreignKey:RequesterID;references:UserID"`
 }
 
 type Agent struct {
-	UserID      uuid.UUID `gorm:"type:varchar(36)"`
+	UserID      uuid.UUID `gorm:"type:varchar(36);primaryKey"`
 	Bio         string
 	Level       AgentLevel
 	Assignments []Assignment `gorm:"foreignKey:AssigneeID;references:UserID"`
@@ -71,17 +72,24 @@ const (
 )
 
 type Administrator struct {
-	UserID uuid.UUID `gorm:"type:varchar(36)"`
+	UserID uuid.UUID `gorm:"type:varchar(36);primaryKey"`
 }
 
-//Notif *fyne.Notification
-//Notif *fyne.Notification
+type UserKind string
 
+const (
+	USER_KIND_AGENT         UserKind = "AGENT"
+	USER_KIND_REQUESTER     UserKind = "REQUESTER"
+	USER_KIND_ADMINISTRATOR UserKind = "ADMINISTRATOR"
+)
+
+/*
 type Organization struct {
 	Model
 	Name  string
 	Users []User
 }
+*/
 
 type Ticket struct {
 	Model
@@ -159,6 +167,7 @@ type Tag struct {
 	Value   string `gorm:"type:varchar(50);uniqueIndex:key_value"`
 	Status  TagStatus
 	Tickets []*Ticket `gorm:"many2many:ticket_tags;"`
+	Users   []*User   `gorm:"many2many:user_tags;"`
 }
 
 type TicketTags struct {
