@@ -2,6 +2,7 @@ package svc
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -53,24 +54,34 @@ func (i *Initialization) CreateDefaultRoles() {
 
 	//check if not exist
 	_, err := svc.FindByValue(axone.ROLE_VALUE_AGENT)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		svc.Repo.Create(&agentRole)
-	} else {
-		panic(err)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			svc.Repo.Create(&agentRole)
+		} else {
+			log.Print(err)
+			panic(err)
+		}
 	}
 
 	_, err = svc.FindByValue(axone.ROLE_VALUE_ADMINISTRATOR)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		svc.Repo.Create(&admintRole)
-	} else {
-		panic(err)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			svc.Repo.Create(&admintRole)
+		} else {
+			log.Print(err)
+			panic(err)
+		}
+
 	}
 
 	_, err = svc.FindByValue(axone.ROLE_VALUE_REQUESTER)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		svc.Repo.Create(&requesterRole)
-	} else {
-		panic(err)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			svc.Repo.Create(&requesterRole)
+		} else {
+			log.Print(err)
+			panic(err)
+		}
 	}
 
 }

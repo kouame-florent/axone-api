@@ -6,7 +6,6 @@ import "google/protobuf/timestamp.proto";
 option go_package = "grpc/gen" ;
 
 
-
 service Axone {
     rpc SendNewTicket(NewTicketRequest) returns (NewTicketResponse);
     rpc SendAttachment(stream SendAttachmentRequest) returns (SendAttachmentResponse);
@@ -15,7 +14,8 @@ service Axone {
     rpc ListAgentTickets(ListAgentTicketsRequest) returns (ListAgentTicketsResponse);
 
     rpc ListTags(ListTagRequest) returns (ListTagResponse);
-    rpc AddTag(AddTagRequest) returns (AddTagResponse);
+    rpc TagTicket(TagTicketRequest) returns (TagTicketResponse);
+    //rpc TagUser(TagUserRequest) returns (TagUserResponse);
 
     rpc Subscribe(NotificationRequest) returns (stream NotificationResponse);
     rpc Unsubscribe(NotificationRequest) returns (NotificationResponse);
@@ -133,6 +133,7 @@ message Tag {
     string key         = 2;
     string value       = 3;
     string status      = 4;
+    string description = 5;
 }
 
 message ListTagRequest {
@@ -144,17 +145,27 @@ message ListTagResponse {
 }
 
 
-message AddTagRequest{
+message TagTicketRequest{
     string ticketID         = 1;
     string tagID            = 2;
 }
 
-message AddTagResponse{
+message TagTicketResponse{
     
 }
 
+/*
+message TagUserRequest {
+    string userID            = 1;
+    repeated string tagIDs   = 2;
+}
 
-message CreateUserRequest {
+message TagUserResponse {
+
+}
+*/
+
+message User {
     string firstName        = 1;
     string lastName         = 2;
 	string email            = 3;      
@@ -162,12 +173,32 @@ message CreateUserRequest {
 	string login            = 5;
 	string password         = 6;
 	string status           = 7;
-	string organizationID   = 8;
-    string kind             = 9;
-    string agentLevel       = 10; 
-    string agentBio         = 11;
+    string kind             = 8;
+    string agentLevel       = 9; 
+    string agentBio         = 10;
+}
+
+message CreateUserRequest {
+    User user               = 1;
+    repeated string tagIDs  = 2;
 }
 
 message CreateUserResponse {
     string userID   = 1;
 } 
+
+message ListUserKindRequest {
+
+}
+
+message ListUserKindResponse {
+    
+}
+
+message ListUsersRequest {
+
+}
+
+message ListUsersResponse {
+    repeated User users = 1;
+}

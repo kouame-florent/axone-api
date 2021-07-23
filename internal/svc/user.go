@@ -1,6 +1,7 @@
 package svc
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -49,7 +50,27 @@ func (u *UserSvc) Validate(cred axone.Credential, status axone.UserStatus) error
 	return nil
 }
 
-func (u *UserSvc) CreateUser(user *axone.User) (uuid.UUID, error) {
-	return u.Repo.Create(user)
+func (u *UserSvc) CreateUser(user *axone.User, tagIDs []string) (uuid.UUID, error) {
+	var err error
+	u.Repo.DB.Transaction(func(tx *gorm.DB) error {
 
+		for _, id := range tagIDs {
+			var tag axone.Tag
+			err = tx.First(&tag, "id = ?", id).Error
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+
+			user.Tags = append(user.Tags, &tag)
+		}
+
+		if err = tx.Create(&user).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return user.ID, nil
 }

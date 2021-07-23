@@ -68,7 +68,7 @@ type AgentLevel string
 
 const (
 	AGENT_LEVEL_ONE AgentLevel = "ONE" //can manage ticket with any status and route to any agent
-	AGENT_LEVEL_TWO AgentLevel = "TWO" //cannot manage ticket with new status, can route to agent in the same organization only
+	AGENT_LEVEL_TWO AgentLevel = "TWO" //cannot manage ticket with open status, can route to agent in the same organization only
 )
 
 type Administrator struct {
@@ -163,11 +163,12 @@ const (
 
 type Tag struct {
 	Model
-	Key     string `gorm:"type:varchar(50);uniqueIndex:key_value"`
-	Value   string `gorm:"type:varchar(50);uniqueIndex:key_value"`
-	Status  TagStatus
-	Tickets []*Ticket `gorm:"many2many:ticket_tags;"`
-	Users   []*User   `gorm:"many2many:user_tags;"`
+	Key         string `gorm:"type:varchar(50);uniqueIndex:key_value"`
+	Value       string `gorm:"type:varchar(50);uniqueIndex:key_value"`
+	Description string
+	Status      TagStatus
+	Tickets     []*Ticket `gorm:"many2many:ticket_tags;"`
+	Users       []*User   `gorm:"many2many:user_tags;"`
 }
 
 type TicketTags struct {

@@ -329,15 +329,15 @@ func (s *AxoneServer) ListTags(ctx context.Context, req *gen.ListTagRequest) (*g
 	return tagsResp, nil
 }
 
-func (s *AxoneServer) AddTag(ctx context.Context, req *gen.AddTagRequest) (*gen.AddTagResponse, error) {
+func (s *AxoneServer) AddTag(ctx context.Context, req *gen.TagTicketRequest) (*gen.TagTicketResponse, error) {
 	repo := repo.NewTicketRepo(s.DB)
 	ticketSvc := svc.NewTicketSvc(repo)
 
 	err := ticketSvc.AddTag(req.TicketID, req.TagID)
 	if err != nil {
-		return &gen.AddTagResponse{}, err
+		return &gen.TagTicketResponse{}, err
 	}
-	return &gen.AddTagResponse{}, nil
+	return &gen.TagTicketResponse{}, nil
 }
 
 func (s *AxoneServer) CreateUser(ctx context.Context, req *gen.CreateUserRequest) (*gen.CreateUserResponse, error) {
@@ -353,36 +353,30 @@ func (s *AxoneServer) CreateUser(ctx context.Context, req *gen.CreateUserRequest
 	adminRepo := repo.NewAdministratorRepo(s.DB)
 	adminSvc := svc.NewAdministratorSvc(adminRepo)
 
-	/*
-		orgID, err := uuid.Parse(req.OrganizationID)
-		if err != nil {
-			return &gen.CreateUserResponse{}, err
-		}
-	*/
-
 	user := &axone.User{
 		Model: axone.Model{
 			ID:        uuid.New(),
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		Email:       req.Email,
-		PhoneNumber: req.PhoneNumber,
-		Login:       req.Login,
-		Password:    req.Password,
-		//OrganizationID: orgID,
+		FirstName:   req.User.FirstName,
+		LastName:    req.User.LastName,
+		Email:       req.User.Email,
+		PhoneNumber: req.User.PhoneNumber,
+		Login:       req.User.Login,
+		Password:    req.User.Password,
+		Status:      axone.USER_STATUS_ENABLED,
 	}
 
-	id, err := userSvc.CreateUser(user)
+	id, err := userSvc.CreateUser(user, req.TagIDs)
 	if err != nil {
 		return &gen.CreateUserResponse{}, err
 	}
 
-	switch req.Kind {
+	log.Printf("Request user kind: %s", req.User.Kind)
+	switch req.User.Kind {
 	case string(axone.USER_KIND_AGENT):
-		_, err = agentSvc.CreateAgent(id, axone.AgentLevel(req.AgentLevel), req.AgentBio)
+		_, err = agentSvc.CreateAgent(id, axone.AgentLevel(req.User.AgentLevel), req.User.AgentBio)
 		if err != nil {
 			return &gen.CreateUserResponse{}, err
 		}

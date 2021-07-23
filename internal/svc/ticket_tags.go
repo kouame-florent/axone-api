@@ -22,13 +22,10 @@ func (t *TicketTagsSvc) Exist(ticketID, tagID string) (bool, error) {
 	if tx := t.DB.Table("ticket_tags").Where("ticket_id = ? AND tag_id = ?", ticketID, tagID).Scan(&res); tx.Error != nil {
 		return false, tx.Error
 	}
-
 	if (axone.TicketTags{}) == res {
 		return false, nil
 	}
-
 	return true, nil
-
 }
 
 func (t *TicketTagsSvc) Remove(ticket *axone.Ticket, tag *axone.Tag) error {
